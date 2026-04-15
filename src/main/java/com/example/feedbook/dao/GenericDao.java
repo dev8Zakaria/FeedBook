@@ -1,14 +1,14 @@
 package com.example.feedbook.dao;
 
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.io.Serializable;
 import java.util.List;
 
 public abstract class GenericDao<T, ID extends Serializable> {
 
-    @PersistenceContext(unitName = "feedbookPU")
-    protected EntityManager em;
+    @Inject
+    public EntityManager em;
 
     protected Class<T> entityClass;
 
@@ -37,6 +37,6 @@ public abstract class GenericDao<T, ID extends Serializable> {
     }
 
     public List<T> findAll() {
-        return em.createQuery("FROM " + entityClass.getName(), entityClass).getResultList();
+        return em.createQuery("FROM " + entityClass.getSimpleName(), entityClass).getResultList();
     }
 }

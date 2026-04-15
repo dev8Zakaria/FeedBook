@@ -7,7 +7,7 @@ import jakarta.persistence.PersistenceContext;
 
 @ApplicationScoped
 public class EntityManagerProducer {
-    @PersistenceContext(unitName = "FeedBookPU")
+    @PersistenceContext(unitName = "feedbookPU")
     private EntityManager em;
 
     @Produces
