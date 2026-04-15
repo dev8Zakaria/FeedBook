@@ -24,6 +24,16 @@ public class DaoIntegrationTest {
         // Boot up Hibernate 
         emf = Persistence.createEntityManagerFactory("feedbookPU");
         em = emf.createEntityManager();
+
+        // Wipe old test data to prevent unique constraint failures
+        em.getTransaction().begin();
+        em.createQuery("DELETE FROM Comment").executeUpdate();
+        em.createQuery("DELETE FROM Follow").executeUpdate();
+        em.createQuery("DELETE FROM GroupMember").executeUpdate();
+        em.createQuery("DELETE FROM Post").executeUpdate();
+        em.createQuery("DELETE FROM Group").executeUpdate();
+        em.createQuery("DELETE FROM User").executeUpdate();
+        em.getTransaction().commit();
     }
 
     @AfterAll
@@ -36,7 +46,7 @@ public class DaoIntegrationTest {
     public void testUserDao() {
         // 1. Instantiate the DAO manually since CDI/JSF isn't running in a basic JUnit test
         UserDao userDao = new UserDao();
-        userDao.setEntityManager(em); // Manually injecting the EntityManager (protected field in GenericDao)
+        userDao.setEntityManager(em); // Manually injecting the EntityManager
 
         // 2. Start a transaction
         em.getTransaction().begin();
@@ -55,11 +65,11 @@ public class DaoIntegrationTest {
         em.getTransaction().commit();
 
         // 5. Test the custom finder methods in UserDao
-        Optional<User> foundByEmail = userDao.findByEmail("test@feedbook.com");
+        Optional<User> foundByEmail = userDao.findByEmail("test123@feedbook.com");
         assertTrue(foundByEmail.isPresent(), "User should be found by email");
-        assertEquals("testuser", foundByEmail.get().getUsername(), "Match username");
+        assertEquals("testuser123", foundByEmail.get().getUsername(), "Match username");
 
-        Optional<User> foundByUsername = userDao.findByUsername("testuser");
+        Optional<User> foundByUsername = userDao.findByUsername("testuser123");
         assertTrue(foundByUsername.isPresent(), "User should be found by username");
 
         Optional<User> notFound = userDao.findByEmail("nobody@feedbook.com");

@@ -31,7 +31,7 @@ public class UserService {
      * Update profile fields: firstName, lastName, bio.
      * Only the user themselves can do this (enforced in backing bean via session).
      */
-    @Transactional
+    
     public User updateProfile(Long userId, String firstName, String lastName, String bio) {
         User user = findById(userId);
         user.setFirstName(firstName);
@@ -44,7 +44,7 @@ public class UserService {
     /**
      * Ban or unban a user. Only app admins can call this.
      */
-    @Transactional
+    
     public void setBanned(Long requesterId, Long targetUserId, boolean banned) {
         User requester = findById(requesterId);
         if (requester.getRole() != Role.ADMIN) {

@@ -12,7 +12,7 @@ public class SchemaGenerationTest {
     public void testSchemaGeneration() {
         // Booting up the persistence unit automatically triggers Hibernate
         // to connect to DB and create your tables due to 'update' property
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("feedbookPU");
+        EntityManagerFactory emf = Persistence.createEntityManagerFactory("feedbookPU-test");
 
         assertNotNull(emf, "EntityManagerFactory created successfully");
         

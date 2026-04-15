@@ -28,7 +28,7 @@ public class CommentService {
     /**
      * Add a comment to a post.
      */
-    @Transactional
+    
     public Comment addComment(Long authorId, Long postId, String content) {
         User author = userDao.findById(authorId);
         if (author == null) throw new IllegalArgumentException("User not found.");
@@ -48,7 +48,7 @@ public class CommentService {
     /**
      * Delete a comment. Author or app admin can delete.
      */
-    @Transactional
+    
     public void deleteComment(Long requesterId, Long commentId) {
         Comment comment = commentDao.findById(commentId);
         if (comment == null) throw new IllegalArgumentException("Comment not found.");

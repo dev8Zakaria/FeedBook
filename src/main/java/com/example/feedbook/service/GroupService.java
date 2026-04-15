@@ -25,7 +25,7 @@ public class GroupService {
     /**
      * Create a group. The creator is automatically added as ADMIN.
      */
-    @Transactional
+    
     public Group createGroup(Long ownerId, String name, String description, GroupType type) {
         User owner = userDao.findById(ownerId);
         if (owner == null) throw new IllegalArgumentException("User not found.");
@@ -52,7 +52,7 @@ public class GroupService {
      * Join a group. Fails if already a member, or if group is PRIVATE
      * (private groups require an invite — extend later).
      */
-    @Transactional
+    
     public GroupMember joinGroup(Long userId, Long groupId) {
         User user = userDao.findById(userId);
         Group group = groupDao.findById(groupId);
@@ -80,7 +80,7 @@ public class GroupService {
     /**
      * Leave a group. The group owner cannot leave (they must transfer or delete).
      */
-    @Transactional
+    
     public void leaveGroup(Long userId, Long groupId) {
         Group group = groupDao.findById(groupId);
         if (group == null) throw new IllegalArgumentException("Group not found.");
@@ -98,7 +98,7 @@ public class GroupService {
     /**
      * Promote a member to ADMIN. Only group admins can do this.
      */
-    @Transactional
+    
     public void promoteMember(Long requesterId, Long groupId, Long targetUserId) {
         assertGroupAdmin(requesterId, groupId);
 
@@ -113,7 +113,7 @@ public class GroupService {
      * Kick a member from the group. Only group admins can do this.
      * Admins cannot kick other admins (only the owner can manage admins).
      */
-    @Transactional
+    
     public void kickMember(Long requesterId, Long groupId, Long targetUserId) {
         assertGroupAdmin(requesterId, groupId);
 

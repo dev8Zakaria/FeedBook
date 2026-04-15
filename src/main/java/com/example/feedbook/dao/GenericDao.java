@@ -25,15 +25,48 @@ public abstract class GenericDao<T, ID extends Serializable> {
     }
 
     public void save(T entity) {
-        em.persist(entity);
+        boolean txStarted = false;
+        if (!em.getTransaction().isActive()) {
+            em.getTransaction().begin();
+            txStarted = true;
+        }
+        try {
+            em.persist(entity);
+            if (txStarted) em.getTransaction().commit();
+        } catch (RuntimeException e) {
+            if (txStarted && em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw e;
+        }
     }
 
     public void update(T entity) {
-        em.merge(entity);
+        boolean txStarted = false;
+        if (!em.getTransaction().isActive()) {
+            em.getTransaction().begin();
+            txStarted = true;
+        }
+        try {
+            em.merge(entity);
+            if (txStarted) em.getTransaction().commit();
+        } catch (RuntimeException e) {
+            if (txStarted && em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw e;
+        }
     }
 
     public void delete(T entity) {
-        em.remove(em.merge(entity));
+        boolean txStarted = false;
+        if (!em.getTransaction().isActive()) {
+            em.getTransaction().begin();
+            txStarted = true;
+        }
+        try {
+            em.remove(em.merge(entity));
+            if (txStarted) em.getTransaction().commit();
+        } catch (RuntimeException e) {
+            if (txStarted && em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw e;
+        }
     }
 
     public T findById(ID id) {

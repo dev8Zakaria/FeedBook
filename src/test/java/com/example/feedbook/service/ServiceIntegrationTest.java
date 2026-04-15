@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Integration tests for all service classes.
- * Runs against a real PostgreSQL DB using the feedbookPU persistence unit.
+ * Runs against a real PostgreSQL DB using the feedbookPU-test persistence unit.
  * CDI is not available here — DAOs and services are wired manually,
  * mirroring the pattern established in DaoIntegrationTest.
  */

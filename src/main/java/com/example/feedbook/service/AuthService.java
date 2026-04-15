@@ -4,7 +4,7 @@ import com.example.feedbook.dao.UserDao;
 import com.example.feedbook.entity.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
+
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -21,7 +21,7 @@ public class AuthService {
     /**
      * Registers a new user. Throws if username or email is already taken.
      */
-    @Transactional
+    
     public User register(String username, String email, String password) {
         if (userDao.findByUsername(username).isPresent()) {
             throw new IllegalArgumentException("Username already taken: " + username);

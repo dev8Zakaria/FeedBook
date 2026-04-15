@@ -15,7 +15,7 @@ public class UserDao extends GenericDao<User, Long> {
 
     public Optional<User> findByEmail(String email) {
         try {
-            User user = em.createQuery("FROM User u WHERE u.email = :email", User.class)
+            User user = em.createQuery("SELECT u FROM User u WHERE u.email = :email", User.class)
                     .setParameter("email", email)
                     .getSingleResult();
             return Optional.of(user);
@@ -26,7 +26,7 @@ public class UserDao extends GenericDao<User, Long> {
 
     public Optional<User> findByUsername(String username) {
         try {
-            User user = em.createQuery("FROM User u WHERE u.username = :username", User.class)
+            User user = em.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
                     .setParameter("username", username)
                     .getSingleResult();
             return Optional.of(user);

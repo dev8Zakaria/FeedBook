@@ -1,15 +1,27 @@
 package com.example.feedbook.config;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.RequestScoped;
+import jakarta.enterprise.inject.Disposes;
 import jakarta.enterprise.inject.Produces;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
 
 @ApplicationScoped
 public class EntityManagerProducer {
-    @PersistenceContext(unitName = "feedbookPU")
-    private EntityManager em;
+
+    private EntityManagerFactory emf = Persistence.createEntityManagerFactory("feedbookPU");
 
     @Produces
-    public EntityManager produce() { return em; }
+    @RequestScoped
+    public EntityManager produce() {
+        return emf.createEntityManager();
+    }
+
+    public void close(@Disposes EntityManager em) {
+        if (em.isOpen()) {
+            em.close();
+        }
+    }
 }

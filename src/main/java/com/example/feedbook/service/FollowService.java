@@ -23,7 +23,7 @@ public class FollowService {
      * Follow another user.
      * Throws if already following, or if trying to follow yourself.
      */
-    @Transactional
+    
     public Follow follow(Long followerId, Long followedId) {
         if (followerId.equals(followedId)) {
             throw new IllegalArgumentException("You cannot follow yourself.");
@@ -51,7 +51,7 @@ public class FollowService {
     /**
      * Unfollow a user.
      */
-    @Transactional
+    
     public void unfollow(Long followerId, Long followedId) {
         Follow follow = followDao.findFollow(followerId, followedId)
                 .orElseThrow(() -> new IllegalStateException("You are not following this user."));
