@@ -8,7 +8,11 @@ import java.util.List;
 public abstract class GenericDao<T, ID extends Serializable> {
 
     @Inject
-    public EntityManager em;
+    protected EntityManager em;
+
+    public void setEntityManager(EntityManager em) {
+        this.em = em;
+    }
 
     protected Class<T> entityClass;
 

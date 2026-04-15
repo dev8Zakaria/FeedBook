@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core">
+<h:head>
+    <title>FeedBook - Login</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .auth-container h1 {
+            color: #1e3c72;
+            margin-top: 0;
+            margin-bottom: 24px;
+            font-weight: 700;
+            font-size: 28px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 15px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.15);
+        }
+
+        .btn-submit {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 14px;
+            width: 100%;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 10px;
+        }
+
+        .btn-submit:hover {
+            background: #1e3c72;
+        }
+
+        .btn-submit:active {
+            transform: translateY(2px);
+        }
+
+        .auth-footer {
+            margin-top: 24px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .auth-footer a {
+            color: #2a5298;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .error-messages {
+            color: #dc3545;
+            list-style-type: none;
+            padding: 0;
+            margin-bottom: 20px;
+            background: #f8d7da;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+        }
+    </style>
+</h:head>
+<h:body>
+    <div class="auth-container">
+        <h1>Welcome Back</h1>
+        
+        <h:messages globalOnly="true" class="error-messages" />
+
+        <h:form id="loginForm">
+            <div class="input-group">
+                <h:outputLabel for="email" value="Email Address"/>
+                <h:inputText id="email" value="#{authBean.email}" required="true" 
+                             requiredMessage="Email is required" />
+            </div>
+
+            <div class="input-group">
+                <h:outputLabel for="password" value="Password"/>
+                <h:inputSecret id="password" value="#{authBean.password}" required="true" 
+                               requiredMessage="Password is required" />
+            </div>
+
+            <h:commandButton value="Sign In" action="#{authBean.doLogin}" styleClass="btn-submit"/>
+        </h:form>
+
+        <div class="auth-footer">
+            Don't have an account? <h:link outcome="register.xhtml" value="Create one now" />
+        </div>
+    </div>
+</h:body>
+</html>

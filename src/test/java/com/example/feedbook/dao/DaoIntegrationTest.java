@@ -36,15 +36,15 @@ public class DaoIntegrationTest {
     public void testUserDao() {
         // 1. Instantiate the DAO manually since CDI/JSF isn't running in a basic JUnit test
         UserDao userDao = new UserDao();
-        userDao.em = em; // Manually injecting the EntityManager (protected field in GenericDao)
+        userDao.setEntityManager(em); // Manually injecting the EntityManager (protected field in GenericDao)
 
         // 2. Start a transaction
         em.getTransaction().begin();
 
         // 3. Create a mock user
         User testUser = new User();
-        testUser.setUsername("testuser");
-        testUser.setEmail("test@feedbook.com");
+        testUser.setUsername("testuser123");
+        testUser.setEmail("test123@feedbook.com");
         testUser.setPassword("secret123");
         testUser.setFirstName("John");
         testUser.setLastName("Doe");

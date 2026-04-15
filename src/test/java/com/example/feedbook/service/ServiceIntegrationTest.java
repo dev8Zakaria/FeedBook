@@ -53,19 +53,29 @@ public class ServiceIntegrationTest {
         emf = Persistence.createEntityManagerFactory("feedbookPU");
         em = emf.createEntityManager();
 
+        // Wipe old test data from the database using JPQL, respecting foreign-key hierarchy
+        em.getTransaction().begin();
+        em.createQuery("DELETE FROM Comment").executeUpdate();
+        em.createQuery("DELETE FROM Follow").executeUpdate();
+        em.createQuery("DELETE FROM GroupMember").executeUpdate();
+        em.createQuery("DELETE FROM Post").executeUpdate();
+        em.createQuery("DELETE FROM Group").executeUpdate();
+        em.createQuery("DELETE FROM User").executeUpdate();
+        em.getTransaction().commit();
+
         // Wire DAOs
         userDao = new UserDao();
-        userDao.em = em;
+        userDao.setEntityManager(em);
         postDao = new PostDao();
-        postDao.em = em;
+        postDao.setEntityManager(em);
         commentDao = new CommentDao();
-        commentDao.em = em;
+        commentDao.setEntityManager(em);
         followDao = new FollowDao();
-        followDao.em = em;
+        followDao.setEntityManager(em);
         groupDao = new GroupDao();
-        groupDao.em = em;
+        groupDao.setEntityManager(em);
         groupMemberDao = new GroupMemberDao();
-        groupMemberDao.em = em;
+        groupMemberDao.setEntityManager(em);
 
         // Wire services
         authService = new AuthService();
@@ -280,11 +290,20 @@ public class ServiceIntegrationTest {
         System.out.println("✅ getCommentsForPost: found " + comments.size() + " comment(s)");
     }
 
+    @AfterEach
+    public void cleanupTransaction() {
+        // Prevent a failing test from leaving a transaction open and causing domino-effect failures
+        if (em.getTransaction().isActive()) {
+            em.getTransaction().rollback();
+        }
+    }
+
     @Test
     @Order(15)
     public void testDeleteCommentByNonAuthorFails() {
         assertThrows(SecurityException.class,
-                () -> commentService.deleteComment(adminId, commentId));
+                // otherUserId is a regular user, adminId is an admin (who is allowed to delete)
+                () -> commentService.deleteComment(otherUserId, commentId));
         System.out.println("✅ deleteComment: non-author correctly rejected");
     }
 
