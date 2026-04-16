@@ -164,7 +164,7 @@ public class ServiceIntegrationTest {
     @Order(5)
     public void testUpdateProfile() {
         em.getTransaction().begin();
-        User updated = userService.updateProfile(userId, "John", "Doe", "Hello world");
+        User updated = userService.updateProfile(userId, "John", "Doe", "Hello world", null);
         em.getTransaction().commit();
 
         assertEquals("John", updated.getFirstName());
@@ -227,7 +227,7 @@ public class ServiceIntegrationTest {
     @Order(9)
     public void testCreatePost() {
         em.getTransaction().begin();
-        Post post = postService.createPost(userId, "Hello FeedBook!", PostVisibility.PUBLIC);
+        Post post = postService.createPost(userId, "Hello FeedBook!", PostVisibility.PUBLIC, null);
         em.getTransaction().commit();
 
         assertNotNull(post.getId());
@@ -364,7 +364,7 @@ public class ServiceIntegrationTest {
     public void testFollowFeedContainsPost() {
         // userId follows adminId; create a post as adminId
         em.getTransaction().begin();
-        Post adminPost = postService.createPost(adminId, "Admin's post", PostVisibility.PUBLIC);
+        Post adminPost = postService.createPost(adminId, "Admin's post", PostVisibility.PUBLIC, null);
         em.getTransaction().commit();
 
         List<Post> feed = postService.getFollowFeed(userId);
@@ -424,7 +424,7 @@ public class ServiceIntegrationTest {
     @Order(25)
     public void testCreateGroupPost() {
         em.getTransaction().begin();
-        Post post = postService.createGroupPost(userId, groupId, "Post inside group");
+        Post post = postService.createGroupPost(userId, groupId, "Post inside group", null);
         em.getTransaction().commit();
 
         assertNotNull(post.getId());
@@ -447,7 +447,7 @@ public class ServiceIntegrationTest {
     @Order(27)
     public void testNonMemberCannotPostInGroup() {
         assertThrows(SecurityException.class,
-                () -> postService.createGroupPost(otherUserId, groupId, "Sneaky post"));
+                () -> postService.createGroupPost(otherUserId, groupId, "Sneaky post", null));
         System.out.println("✅ createGroupPost: non-member correctly rejected");
     }
 

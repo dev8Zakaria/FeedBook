@@ -19,6 +19,9 @@ public class Post {
     @Column(nullable = false)
     private PostVisibility visibility = PostVisibility.PUBLIC;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -44,6 +47,8 @@ public class Post {
     public void setContent(String content) { this.content = content; }
     public PostVisibility getVisibility() { return visibility; }
     public void setVisibility(PostVisibility visibility) { this.visibility = visibility; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public User getAuthor() { return author; }

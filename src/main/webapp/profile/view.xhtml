@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets">
+<h:head>
+    <title>Profile - FeedBook</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .card { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        ul { list-style-type: none; padding: 0; }
+        li { padding: 5px 0; border-bottom: 1px solid #eee; }
+        a { text-decoration: none; color: blue; }
+        .stats { display: flex; gap: 20px; margin-top: 10px; color: #555; }
+        .pfp { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
+    </style>
+</h:head>
+<h:body>
+    <f:metadata>
+        <f:viewParam name="userId" value="#{profileBean.userId}"/>
+        <f:viewAction action="#{profileBean.loadProfile}"/>
+    </f:metadata>
+
+    <div class="card">
+        <div class="header">
+            <div>
+                 <h:graphicImage value="/resources/#{profileBean.profileUser.profilePictureUrl}" 
+                                rendered="#{not empty profileBean.profileUser.profilePictureUrl}" 
+                                styleClass="pfp" />
+                 <h2>#{profileBean.profileUser.firstName} #{profileBean.profileUser.lastName} (@#{profileBean.profileUser.username})</h2>
+            </div>
+            
+            <h:form>
+                <h:commandButton value="Edit Profile" action="/profile/edit.xhtml?faces-redirect=true" rendered="#{profileBean.myProfile}" />
+                <h:commandButton value="#{profileBean.isFollowing ? 'Unfollow' : 'Follow'}" action="#{profileBean.toggleFollow}" rendered="#{not profileBean.myProfile and authBean.loggedIn}" />
+                <h:link outcome="/index.xhtml" value="Back to Home" style="margin-left:10px;"/>
+            </h:form>
+        </div>
+        
+        <p><i>#{not empty profileBean.profileUser.bio ? profileBean.profileUser.bio : 'No bio provided.'}</i></p>
+
+        <div class="stats">
+            <span><b>Posts:</b> #{profileBean.userPosts.size()}</span>
+            <span><b>Followers:</b> #{profileBean.followers.size()}</span>
+            <span><b>Following:</b> #{profileBean.following.size()}</span>
+        </div>
+    </div>
+
+    <h3>Posts</h3>
+    <h:panelGroup rendered="#{empty profileBean.userPosts}">
+        <p>No posts yet.</p>
+    </h:panelGroup>
+
+    <ul>
+        <ui:repeat value="#{profileBean.userPosts}" var="post">
+            <li>
+                <strong>#{post.createdAt}</strong> - <h:link outcome="/post/view.xhtml" value="View Post"><f:param name="postId" value="#{post.id}"/></h:link><br/>
+                #{post.content}
+                <ui:fragment rendered="#{not empty post.imageUrl}">
+                    <br/>
+                    <img src="#{request.contextPath}/resources/#{post.imageUrl}" style="max-width: 300px; display:block; margin-top:10px;" />
+                </ui:fragment>
+            </li>
+        </ui:repeat>
+    </ul>
+
+</h:body>
+</html>

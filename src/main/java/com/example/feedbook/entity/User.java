@@ -26,6 +26,9 @@ public class User {
     @Column(columnDefinition = "TEXT")
     private String bio;
 
+    @Column(name = "profile_picture_url")
+    private String profilePictureUrl;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.USER;
@@ -55,6 +58,8 @@ public class User {
     public void setLastName(String lastName) { this.lastName = lastName; }
     public String getBio() { return bio; }
     public void setBio(String bio) { this.bio = bio; }
+    public String getProfilePictureUrl() { return profilePictureUrl; }
+    public void setProfilePictureUrl(String profilePictureUrl) { this.profilePictureUrl = profilePictureUrl; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
     public Boolean getIsBanned() { return isBanned; }

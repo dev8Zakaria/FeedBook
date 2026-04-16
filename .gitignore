@@ -14,6 +14,7 @@ target/
 *.ipr
 .idea/dataSources.xml
 src/main/resources/META-INF/persistence.xml
+src/main/webapp/resources
 
 ### Eclipse ###
 .apt_generated

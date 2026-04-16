@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:f="jakarta.faces.core">
+<h:head>
+    <title>My Feed - FeedBook</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .post-card { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+        .author-link { font-weight: bold; text-decoration: none; color: black; }
+        .author-link:hover { text-decoration: underline; }
+    </style>
+</h:head>
+<h:body>
+    <div class="container">
+        
+        <div class="header">
+            <h1 class="feed-title">My Feed</h1>
+            <div>
+                <h:link outcome="index.xhtml" value="View Global Feed" style="margin-right:10px;"/>
+                <h:link outcome="/post/new.xhtml" value="Create Post"/>
+            </div>
+        </div>
+
+        <ui:fragment rendered="#{empty postBean.followedFeed}">
+            <div class="empty-feed">
+                <h2>Nothing to see here yet!</h2>
+                <p>Follow some users to see their posts appear in your personalized feed.</p>
+            </div>
+        </ui:fragment>
+
+        <ui:repeat value="#{postBean.followedFeed}" var="post">
+            <div class="post-card">
+                 <h:link outcome="/profile/view.xhtml" styleClass="author-link">
+                        <f:param name="userId" value="#{post.author.id}" />
+                        #{post.author.username}
+                 </h:link>
+                 <br/>
+                 <small>#{post.createdAt}</small>
+                 <p>#{post.content}</p>
+                 <ui:fragment rendered="#{not empty post.imageUrl}">
+                    <img src="#{request.contextPath}/resources/#{post.imageUrl}" style="max-width: 300px; display:block; margin-top:10px;" />
+                 </ui:fragment>
+            </div>
+        </ui:repeat>
+
+    </div>
+</h:body>
+</html>

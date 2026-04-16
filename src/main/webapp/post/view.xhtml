@@ -26,13 +26,20 @@
 
             <div style="border:1px solid #ccc; padding:12px; margin-bottom:16px;">
                 <p>
-                    <strong>#{postBean.currentPost.author.username}</strong>
+                    <h:link outcome="/profile/view.xhtml">
+                        <f:param name="userId" value="#{postBean.currentPost.author.id}" />
+                        #{postBean.currentPost.author.username}
+                    </h:link>
                     &#160;·&#160;
                     <h:outputText value="#{postBean.currentPost.createdAt}">
                         <f:convertDateTime pattern="dd MMM yyyy HH:mm" type="localDateTime"/>
                     </h:outputText>
                 </p>
                 <p>#{postBean.currentPost.content}</p>
+                <c:if test="#{not empty postBean.currentPost.imageUrl}">
+                    <img src="#{request.contextPath}/resources/#{postBean.currentPost.imageUrl}" 
+                         style="max-width: 100%; display:block; margin-bottom:16px;" />
+                </c:if>
                 <p>
                     <c:if test="#{postBean.canEdit(postBean.currentPost)}">
                         <h:link outcome="/post/edit.xhtml" value="Edit">
@@ -59,8 +66,11 @@
                 <c:otherwise>
                     <c:forEach items="#{postBean.comments}" var="comment">
                         <div style="border:1px solid #eee; padding:8px; margin-bottom:8px;">
-                            <p>
-                                <strong>#{comment.author.username}</strong>
+                <p>
+                                <h:link outcome="/profile/view.xhtml">
+                                    <f:param name="userId" value="#{comment.author.id}" />
+                                    #{comment.author.username}
+                                </h:link>
                                 &#160;·&#160;
                                 <h:outputText value="#{comment.createdAt}">
                                     <f:convertDateTime pattern="dd MMM yyyy HH:mm" type="localDateTime"/>

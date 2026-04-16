@@ -30,7 +30,7 @@ public class PostService {
      * Create a standalone (non-group) post.
      */
     
-    public Post createPost(Long authorId, String content, PostVisibility visibility) {
+    public Post createPost(Long authorId, String content, PostVisibility visibility, String imageUrl) {
         User author = userDao.findById(authorId);
         if (author == null) throw new IllegalArgumentException("User not found.");
 
@@ -38,6 +38,7 @@ public class PostService {
         post.setAuthor(author);
         post.setContent(content);
         post.setVisibility(visibility);
+        post.setImageUrl(imageUrl);
 
         postDao.save(post);
         return post;
@@ -48,6 +49,11 @@ public class PostService {
      */
     
     public Post createGroupPost(Long authorId, Long groupId, String content) {
+        // Convenience overload for callers that don't provide an image.
+        return createGroupPost(authorId, groupId, content, null);
+    }
+
+    public Post createGroupPost(Long authorId, Long groupId, String content, String imageUrl) {
         User author = userDao.findById(authorId);
         if (author == null) throw new IllegalArgumentException("User not found.");
 
@@ -62,6 +68,7 @@ public class PostService {
         post.setContent(content);
         post.setVisibility(PostVisibility.GROUP);
         post.setGroup(group);
+        post.setImageUrl(imageUrl);
 
         postDao.save(post);
         return post;

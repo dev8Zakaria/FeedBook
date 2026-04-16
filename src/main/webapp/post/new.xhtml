@@ -13,13 +13,18 @@
 
     <h:messages globalOnly="true" />
 
-    <h:form id="newPostForm">
+    <h:form id="newPostForm" enctype="multipart/form-data">
 
         <p>
             <h:outputLabel for="content" value="Content" /><br/>
             <h:inputTextarea id="content" value="#{postBean.newContent}"
                              rows="6" cols="60"
                              required="true" requiredMessage="Content is required." />
+        </p>
+
+        <p>
+            <h:outputLabel for="image" value="Attach Image (Optional)" /><br/>
+            <h:inputFile id="image" value="#{postBean.newImage}" />
         </p>
 
         <p>
