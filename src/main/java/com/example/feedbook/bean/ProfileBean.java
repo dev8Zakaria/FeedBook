@@ -37,7 +37,7 @@ public class ProfileBean implements Serializable {
     @Inject
     private AuthBean authBean;
 
-    private Long userId; // from view param
+    private Long userId; 
     private User profileUser;
     
     private List<Post> userPosts;
@@ -48,10 +48,18 @@ public class ProfileBean implements Serializable {
     private String firstName;
     private String lastName;
     private String bio;
+    private String newPassword;
     private Part newProfileImage;
 
     @PostConstruct
     public void init() {
+        // Initial setup for current user if we are on edit page
+        if (authBean.isLoggedIn()) {
+            User current = authBean.getCurrentUser();
+            firstName = current.getFirstName();
+            lastName = current.getLastName();
+            bio = current.getBio();
+        }
     }
 
     public void loadProfile() {
@@ -59,12 +67,11 @@ public class ProfileBean implements Serializable {
             Long targetId = (userId != null) ? userId : authBean.getCurrentUser().getId();
             profileUser = userService.findById(targetId);
             
-            // load stats/content
             userPosts = postService.getPostsByAuthor(targetId);
             followers = followService.getFollowers(targetId);
             following = followService.getFollowing(targetId);
             
-            // initialize edit fields in case they navigate to edit
+            // Overwrite edit fields with the target profile data if we are viewing someone else
             firstName = profileUser.getFirstName();
             lastName = profileUser.getLastName();
             bio = profileUser.getBio();
@@ -86,37 +93,41 @@ public class ProfileBean implements Serializable {
 
     public void toggleFollow() {
         if (!authBean.isLoggedIn() || isMyProfile()) return;
-        
         Long myId = authBean.getCurrentUser().getId();
         Long targetId = profileUser.getId();
-
         try {
             if (getIsFollowing()) {
                 followService.unfollow(myId, targetId);
             } else {
                 followService.follow(myId, targetId);
             }
-            // Reload following stats
             followers = followService.getFollowers(targetId);
         } catch (Exception e) {
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Could not update follow status.", null));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error updating follow status.", null));
         }
     }
 
     public String saveProfile() {
-        if (!isMyProfile()) return null;
+        if (!authBean.isLoggedIn()) return null;
         try {
+            Long myId = authBean.getCurrentUser().getId();
             String profilePicUrl = imageService.saveImage(newProfileImage);
-            userService.updateProfile(authBean.getCurrentUser().getId(), firstName, lastName, bio, profilePicUrl);
-            // update session user
-            User updated = userService.findById(authBean.getCurrentUser().getId());
+            
+            userService.updateProfile(myId, firstName, lastName, bio, profilePicUrl);
+            
+            if (newPassword != null && !newPassword.trim().isEmpty()) {
+                userService.updatePassword(myId, newPassword);
+            }
+
+            // Refresh session user
+            User updated = userService.findById(myId);
             authBean.setCurrentUser(updated);
             
             return "/profile/view.xhtml?userId=" + updated.getId() + "&faces-redirect=true";
         } catch (Exception e) {
             FacesContext.getCurrentInstance().addMessage(null,
-                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error saving profile.", null));
+                    new FacesMessage(FacesMessage.SEVERITY_ERROR, "Error saving profile: " + e.getMessage(), null));
             return null;
         }
     }
@@ -124,22 +135,18 @@ public class ProfileBean implements Serializable {
     // Getters / Setters
     public Long getUserId() { return userId; }
     public void setUserId(Long userId) { this.userId = userId; }
-
     public User getProfileUser() { return profileUser; }
-    
     public List<Post> getUserPosts() { return userPosts; }
     public List<Follow> getFollowers() { return followers; }
     public List<Follow> getFollowing() { return following; }
-    
     public String getFirstName() { return firstName; }
     public void setFirstName(String firstName) { this.firstName = firstName; }
-
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
-
     public String getBio() { return bio; }
     public void setBio(String bio) { this.bio = bio; }
-    
+    public String getNewPassword() { return newPassword; }
+    public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
     public Part getNewProfileImage() { return newProfileImage; }
     public void setNewProfileImage(Part newProfileImage) { this.newProfileImage = newProfileImage; }
 }

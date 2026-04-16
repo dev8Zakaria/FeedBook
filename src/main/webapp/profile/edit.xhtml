@@ -4,31 +4,41 @@
       xmlns:f="jakarta.faces.core">
 <h:head>
     <title>Edit Profile - FeedBook</title>
-    <!-- Minimal styling -->
     <style>
         body { font-family: sans-serif; margin: 20px; }
         .card { border: 1px solid #ccc; padding: 15px; max-width: 400px; border-radius: 5px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], textarea { width: 100%; padding: 8px; box-sizing: border-box; }
+        input[type="text"], input[type="password"], textarea { width: 100%; padding: 8px; box-sizing: border-box; }
         .error { color: red; }
+        .pfp-preview { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 1px solid #ddd; }
     </style>
 </h:head>
 <h:body>
     <f:metadata>
-        <!-- Must be logged in to edit -->
         <f:viewAction action="#{profileBean.loadProfile}"/>
     </f:metadata>
 
-    <h:link outcome="/index.xhtml" value="Cancel &amp; Go Back" />
+    <h:link outcome="/profile/view.xhtml" value="Cancel &amp; Go Back">
+        <f:param name="userId" value="#{authBean.currentUser.id}" />
+    </h:link>
     
     <div class="card" style="margin-top: 15px;">
         <h2>Edit Profile</h2>
         <h:messages globalOnly="true" styleClass="error" />
 
         <h:form enctype="multipart/form-data">
-            <div class="form-group">
-                <h:outputLabel value="Profile Picture:" for="pfp" />
+            
+            <div class="form-group text-center">
+                <label>Current Picture:</label>
+                <h:graphicImage value="/resources/#{authBean.currentUser.profilePictureUrl}" 
+                                rendered="#{not empty authBean.currentUser.profilePictureUrl}" 
+                                styleClass="pfp-preview" />
+                <h:panelGroup rendered="#{empty authBean.currentUser.profilePictureUrl}">
+                    <div style="background:#eee; width:60px; height:60px; border-radius:50%; display:inline-block; line-height:60px; color:#999; font-size:10px;">No Image</div>
+                </h:panelGroup>
+                <br/>
+                <h:outputLabel value="Change Picture:" for="pfp" />
                 <h:inputFile id="pfp" value="#{profileBean.newProfileImage}" />
             </div>
 
@@ -45,6 +55,12 @@
             <div class="form-group">
                 <h:outputLabel value="Bio:" for="bio" />
                 <h:inputTextarea id="bio" value="#{profileBean.bio}" rows="4" />
+            </div>
+
+            <div class="form-group" style="border-top: 1px solid #eee; padding-top: 10px;">
+                <h:outputLabel value="New Password (Optional):" for="pwd" />
+                <h:inputSecret id="pwd" value="#{profileBean.newPassword}" />
+                <small style="color: #666;">Leave blank to stay as is.</small>
             </div>
 
             <h:commandButton value="Save Changes" action="#{profileBean.saveProfile}" />

@@ -13,7 +13,16 @@ import java.util.Optional;
 public class UserService {
 
     @Inject
-     UserDao userDao;
+    UserDao userDao;
+
+    @Inject
+    AuthService authService;
+
+    public void updatePassword(Long userId, String plainPassword) {
+        User user = findById(userId);
+        user.setPassword(authService.hashPassword(plainPassword));
+        userDao.update(user);
+    }
 
     public User findById(Long id) {
         User user = userDao.findById(id);
