@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:c="jakarta.tags.core">
+<h:head>
+    <title>FeedBook - Post</title>
+</h:head>
+<h:body>
+
+    <f:metadata>
+        <f:viewParam name="postId" value="#{postBean.postId}" />
+        <f:viewAction action="#{postBean.loadPost}" />
+    </f:metadata>
+
+    <h:link outcome="/index.xhtml" value="&lt; Back to Feed" />
+    <hr/>
+
+    <h:messages globalOnly="true" />
+
+    <c:choose>
+        <c:when test="#{postBean.currentPost == null}">
+            <p>Post not found.</p>
+        </c:when>
+        <c:otherwise>
+
+            <div style="border:1px solid #ccc; padding:12px; margin-bottom:16px;">
+                <p>
+                    <strong>#{postBean.currentPost.author.username}</strong>
+                    &#160;·&#160;
+                    <h:outputText value="#{postBean.currentPost.createdAt}">
+                        <f:convertDateTime pattern="dd MMM yyyy HH:mm" type="localDateTime"/>
+                    </h:outputText>
+                </p>
+                <p>#{postBean.currentPost.content}</p>
+                <p>
+                    <c:if test="#{postBean.canEdit(postBean.currentPost)}">
+                        <h:link outcome="/post/edit.xhtml" value="Edit">
+                            <f:param name="postId" value="#{postBean.currentPost.id}"/>
+                        </h:link>
+                        &#160;|&#160;
+                    </c:if>
+                    <c:if test="#{postBean.canDelete(postBean.currentPost)}">
+                        <h:form style="display:inline">
+                            <h:commandLink value="Delete"
+                                           action="#{postBean.doDeletePost(postBean.currentPost.id)}"
+                                           onclick="return confirm('Delete this post?')"/>
+                        </h:form>
+                    </c:if>
+                </p>
+            </div>
+
+            <h3>Comments (#{postBean.comments.size()})</h3>
+
+            <c:choose>
+                <c:when test="#{empty postBean.comments}">
+                    <p>No comments yet.</p>
+                </c:when>
+                <c:otherwise>
+                    <c:forEach items="#{postBean.comments}" var="comment">
+                        <div style="border:1px solid #eee; padding:8px; margin-bottom:8px;">
+                            <p>
+                                <strong>#{comment.author.username}</strong>
+                                &#160;·&#160;
+                                <h:outputText value="#{comment.createdAt}">
+                                    <f:convertDateTime pattern="dd MMM yyyy HH:mm" type="localDateTime"/>
+                                </h:outputText>
+                            </p>
+                            <p>#{comment.content}</p>
+                            <c:if test="#{postBean.canDeleteComment(comment)}">
+                                <h:form style="display:inline">
+                                    <h:commandLink value="Delete"
+                                                   action="#{postBean.doDeleteComment(comment.id)}"
+                                                   onclick="return confirm('Delete this comment?')"/>
+                                </h:form>
+                            </c:if>
+                        </div>
+                    </c:forEach>
+                </c:otherwise>
+            </c:choose>
+
+            <h3>Add a Comment</h3>
+            <h:form id="commentForm">
+                <h:inputHidden value="#{postBean.postId}" />
+                <h:inputTextarea value="#{postBean.newCommentContent}"
+                                 rows="3" cols="60"
+                                 required="true" requiredMessage="Comment cannot be empty." />
+                <br/>
+                <h:commandButton value="Comment" action="#{postBean.doAddComment}" />
+            </h:form>
+
+        </c:otherwise>
+    </c:choose>
+
+</h:body>
+</html>

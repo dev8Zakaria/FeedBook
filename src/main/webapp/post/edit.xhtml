@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:c="jakarta.tags.core">
+<h:head>
+    <title>FeedBook - Edit Post</title>
+</h:head>
+<h:body>
+
+    <f:metadata>
+        <f:viewParam name="postId" value="#{postBean.postId}" />
+        <f:viewAction action="#{postBean.loadEditPost}" />
+    </f:metadata>
+
+    <h:link outcome="/index.xhtml" value="&lt; Back to Feed" />
+    <hr/>
+
+    <h:messages globalOnly="true" />
+
+    <c:choose>
+        <c:when test="#{postBean.currentPost == null}">
+            <p>Post not found.</p>
+        </c:when>
+        <c:otherwise>
+
+            <h2>Edit Post</h2>
+
+            <h:form id="editPostForm">
+                <p>
+                    <h:outputLabel for="editContent" value="Content" /><br/>
+                    <h:inputTextarea id="editContent" value="#{postBean.editContent}"
+                                     rows="6" cols="60"
+                                     required="true" requiredMessage="Content is required." />
+                </p>
+                <h:commandButton value="Save" action="#{postBean.doEditPost}" />
+                &#160;
+                <h:link outcome="/post/view.xhtml" value="Cancel">
+                    <f:param name="postId" value="#{postBean.postId}"/>
+                </h:link>
+            </h:form>
+
+        </c:otherwise>
+    </c:choose>
+
+</h:body>
+</html>

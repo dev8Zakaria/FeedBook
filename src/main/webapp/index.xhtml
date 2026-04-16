@@ -1,15 +1,67 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html">
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:c="jakarta.tags.core">
 <h:head>
     <title>FeedBook - Home</title>
 </h:head>
 <h:body>
-    <h1>Welcome to FeedBook!</h1>
-    <p>You have successfully logged in.</p>
-    
+
+    <h2>FeedBook</h2>
+    <p>Logged in as: <strong>#{authBean.currentUser.username}</strong></p>
+
+    <h:link outcome="/post/new.xhtml" value="+ New Post" /> |
     <h:form>
-        <h:commandButton value="Logout" action="#{authBean.logout}" />
+        <h:commandLink value="Logout" action="#{authBean.logout}" />
     </h:form>
+
+    <hr/>
+
+    <h:messages globalOnly="true" />
+
+    <h2>Global Feed</h2>
+
+    <c:choose>
+        <c:when test="#{empty postBean.globalFeed}">
+            <p>No posts yet.</p>
+        </c:when>
+        <c:otherwise>
+            <c:forEach items="#{postBean.globalFeed}" var="post">
+                <div style="border:1px solid #ccc; margin-bottom:16px; padding:12px;">
+                    <p>
+                        <strong>#{post.author.username}</strong>
+                        &#160;·&#160;
+                        <h:outputText value="#{post.createdAt}">
+                            <f:convertDateTime pattern="dd MMM yyyy HH:mm" type="localDateTime"/>
+                        </h:outputText>
+                    </p>
+                    <p>#{post.content}</p>
+                    <p>
+                        <h:link outcome="/post/view.xhtml" value="View / Comment">
+                            <f:param name="postId" value="#{post.id}"/>
+                        </h:link>
+
+                        <c:if test="#{postBean.canEdit(post)}">
+                            &#160;|&#160;
+                            <h:link outcome="/post/edit.xhtml" value="Edit">
+                                <f:param name="postId" value="#{post.id}"/>
+                            </h:link>
+                        </c:if>
+
+                        <c:if test="#{postBean.canDelete(post)}">
+                            &#160;|&#160;
+                            <h:form style="display:inline">
+                                <h:commandLink value="Delete"
+                                               action="#{postBean.doDeletePost(post.id)}"
+                                               onclick="return confirm('Delete this post?')"/>
+                            </h:form>
+                        </c:if>
+                    </p>
+                </div>
+            </c:forEach>
+        </c:otherwise>
+    </c:choose>
+
 </h:body>
 </html>

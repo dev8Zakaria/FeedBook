@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core">
+<h:head>
+    <title>FeedBook - New Post</title>
+</h:head>
+<h:body>
+
+    <h2>New Post</h2>
+    <h:link outcome="/index.xhtml" value="&lt; Back to Feed" />
+    <hr/>
+
+    <h:messages globalOnly="true" />
+
+    <h:form id="newPostForm">
+
+        <p>
+            <h:outputLabel for="content" value="Content" /><br/>
+            <h:inputTextarea id="content" value="#{postBean.newContent}"
+                             rows="6" cols="60"
+                             required="true" requiredMessage="Content is required." />
+        </p>
+
+        <p>
+            <h:outputLabel for="visibility" value="Visibility" /><br/>
+            <h:selectOneMenu id="visibility" value="#{postBean.newVisibility}">
+                <f:selectItem itemValue="PUBLIC" itemLabel="Public" />
+                <f:selectItem itemValue="PRIVATE" itemLabel="Private" />
+            </h:selectOneMenu>
+        </p>
+
+        <h:commandButton value="Post" action="#{postBean.doCreatePost}" />
+
+    </h:form>
+
+</h:body>
+</html>
