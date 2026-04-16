@@ -1,6 +1,7 @@
 package com.example.feedbook.filter;
 
 import com.example.feedbook.bean.AuthBean;
+import com.example.feedbook.entity.Role;
 import jakarta.inject.Inject;
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;
@@ -19,30 +20,36 @@ public class AuthFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
-        HttpServletRequest req = (HttpServletRequest) request;
-        HttpServletResponse res = (HttpServletResponse) response;
+        HttpServletRequest  req  = (HttpServletRequest)  request;
+        HttpServletResponse res  = (HttpServletResponse) response;
 
         String path = req.getRequestURI();
 
-        boolean isLoginRequest = path.endsWith("login.xhtml");
+        boolean isLoginRequest    = path.endsWith("login.xhtml");
         boolean isRegisterRequest = path.endsWith("register.xhtml");
         boolean isResourceRequest = path.startsWith(req.getContextPath() + "/jakarta.faces.resource");
-        
-        // Let user proceed if logged in
-        if (authBean != null && authBean.isLoggedIn()) {
+        boolean isAdminRequest    = path.contains("/admin/");
+
+        boolean loggedIn = authBean != null && authBean.isLoggedIn();
+        boolean isAdmin  = loggedIn
+                && authBean.getCurrentUser() != null
+                && authBean.getCurrentUser().getRole() == Role.ADMIN;
+
+        if (loggedIn) {
             if (isLoginRequest || isRegisterRequest) {
-                // Already authenticated users don't need to see login/register screens
+                // Already authenticated — bounce away from login/register
+                res.sendRedirect(req.getContextPath() + "/index.xhtml");
+            } else if (isAdminRequest && !isAdmin) {
+                // Logged in but not an admin — forbidden
                 res.sendRedirect(req.getContextPath() + "/index.xhtml");
             } else {
                 chain.doFilter(request, response);
             }
         } else {
-            // Unauthenticated User
+            // Unauthenticated
             if (isLoginRequest || isRegisterRequest || isResourceRequest) {
-                // Let them access login, register natively, and any CSS/JS resources
                 chain.doFilter(request, response);
             } else {
-                // Anything else strictly routes them back to the login page
                 res.sendRedirect(req.getContextPath() + "/login.xhtml");
             }
         }

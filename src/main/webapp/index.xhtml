@@ -17,6 +17,10 @@
     <h:form style="display:inline">
         <h:commandLink value="Logout" action="#{authBean.logout}" />
     </h:form>
+    <c:if test="#{authBean.currentUser.role eq 'ADMIN'}">
+        &#160;|&#160;
+        <h:link outcome="/admin/dashboard.xhtml" value="⚙ Admin Dashboard" />
+    </c:if>
 
     <hr/>
 

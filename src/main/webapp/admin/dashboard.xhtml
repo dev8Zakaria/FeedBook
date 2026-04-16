@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets">
+<h:head>
+    <title>Admin Dashboard - FeedBook</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        h2 { border-bottom: 2px solid #333; padding-bottom: 6px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+        th { background: #f4f4f4; }
+        tr:hover { background: #fafafa; }
+        .badge-admin  { background: #333; color: #fff; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+        .badge-banned { background: #c00; color: #fff; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+        .btn-danger  { color: #c00; background: none; border: none; cursor: pointer; font-size: 13px; }
+        .btn-success { color: #080; background: none; border: none; cursor: pointer; font-size: 13px; }
+        .section { margin-bottom: 50px; }
+    </style>
+</h:head>
+<h:body>
+
+    <h:messages globalOnly="true" style="color:red;" />
+
+    <h1>&#9881; Admin Dashboard</h1>
+    <h:link outcome="/index.xhtml" value="&lt; Back to Feed" />
+    <hr/>
+
+    <!-- ═══════════════════════════════════════════ USERS SECTION -->
+    <div class="section">
+        <h2>Users (#{adminBean.allUsers.size()})</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ui:repeat value="#{adminBean.allUsers}" var="u">
+                    <tr>
+                        <td>#{u.id}</td>
+                        <td>
+                            <h:link outcome="/profile/view.xhtml">
+                                <f:param name="userId" value="#{u.id}" />
+                                #{u.username}
+                            </h:link>
+                        </td>
+                        <td>#{u.email}</td>
+                        <td>
+                            <ui:fragment rendered="#{u.role eq 'ADMIN'}">
+                                <span class="badge-admin">ADMIN</span>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{u.role ne 'ADMIN'}">
+                                USER
+                            </ui:fragment>
+                        </td>
+                        <td>
+                            <ui:fragment rendered="#{u.isBanned}">
+                                <span class="badge-banned">BANNED</span>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{not u.isBanned}">
+                                Active
+                            </ui:fragment>
+                        </td>
+                        <td>#{u.createdAt}</td>
+                        <td>
+                            <!-- Cannot ban yourself or other admins -->
+                            <ui:fragment rendered="#{not adminBean.isCurrentUser(u.id) and u.role ne 'ADMIN'}">
+                                <h:form style="display:inline;">
+                                    <ui:fragment rendered="#{not u.isBanned}">
+                                        <h:commandButton value="Ban"
+                                            styleClass="btn-danger"
+                                            action="#{adminBean.banUser(u.id)}"
+                                            onclick="return confirm('Ban #{u.username}?');" />
+                                    </ui:fragment>
+                                    <ui:fragment rendered="#{u.isBanned}">
+                                        <h:commandButton value="Unban"
+                                            styleClass="btn-success"
+                                            action="#{adminBean.unbanUser(u.id)}" />
+                                    </ui:fragment>
+                                </h:form>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{adminBean.isCurrentUser(u.id)}">
+                                <em style="color:#999; font-size:12px;">You</em>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{not adminBean.isCurrentUser(u.id) and u.role eq 'ADMIN'}">
+                                <em style="color:#999; font-size:12px;">Admin</em>
+                            </ui:fragment>
+                        </td>
+                    </tr>
+                </ui:repeat>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════════ POSTS SECTION -->
+    <div class="section">
+        <h2>All Posts (#{adminBean.allPosts.size()})</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Author</th>
+                    <th>Content (preview)</th>
+                    <th>Visibility</th>
+                    <th>Group</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <ui:repeat value="#{adminBean.allPosts}" var="p">
+                    <tr>
+                        <td>#{p.id}</td>
+                        <td>
+                            <h:link outcome="/profile/view.xhtml">
+                                <f:param name="userId" value="#{p.author.id}" />
+                                #{p.author.username}
+                            </h:link>
+                        </td>
+                        <td>
+                            <h:link outcome="/post/view.xhtml">
+                                <f:param name="postId" value="#{p.id}" />
+                                #{p.content.length() gt 80 ? p.content.substring(0, 80).concat('…') : p.content}
+                            </h:link>
+                        </td>
+                        <td>#{p.visibility}</td>
+                        <td>
+                            <ui:fragment rendered="#{not empty p.group}">
+                                <h:link outcome="/groups/view.xhtml">
+                                    <f:param name="groupId" value="#{p.group.id}" />
+                                    #{p.group.name}
+                                </h:link>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{empty p.group}">—</ui:fragment>
+                        </td>
+                        <td>#{p.createdAt}</td>
+                        <td>
+                            <h:form style="display:inline;">
+                                <h:commandButton value="Delete"
+                                    styleClass="btn-danger"
+                                    action="#{adminBean.deletePost(p.id)}"
+                                    onclick="return confirm('Delete this post?');" />
+                            </h:form>
+                        </td>
+                    </tr>
+                </ui:repeat>
+            </tbody>
+        </table>
+    </div>
+
+</h:body>
+</html>

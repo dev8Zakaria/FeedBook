@@ -15,21 +15,20 @@ import java.util.List;
 public class PostService {
 
     @Inject
-     PostDao postDao;
+    PostDao postDao;
 
     @Inject
-     UserDao userDao;
+    UserDao userDao;
 
     @Inject
-     GroupDao groupDao;
+    GroupDao groupDao;
 
     @Inject
-     GroupMemberDao groupMemberDao;
+    GroupMemberDao groupMemberDao;
 
     /**
      * Create a standalone (non-group) post.
      */
-    
     public Post createPost(Long authorId, String content, PostVisibility visibility, String imageUrl) {
         User author = userDao.findById(authorId);
         if (author == null) throw new IllegalArgumentException("User not found.");
@@ -47,9 +46,7 @@ public class PostService {
     /**
      * Create a post inside a group. User must be a member of the group.
      */
-    
     public Post createGroupPost(Long authorId, Long groupId, String content) {
-        // Convenience overload for callers that don't provide an image.
         return createGroupPost(authorId, groupId, content, null);
     }
 
@@ -77,7 +74,6 @@ public class PostService {
     /**
      * Edit a post's content. Only the author can edit their own post.
      */
-    
     public Post editPost(Long requesterId, Long postId, String newContent) {
         Post post = getPostOrThrow(postId);
 
@@ -93,13 +89,12 @@ public class PostService {
     /**
      * Delete a post. Author or app admin can delete.
      */
-    
     public void deletePost(Long requesterId, Long postId) {
         Post post = getPostOrThrow(postId);
         User requester = userDao.findById(requesterId);
 
         boolean isAuthor = post.getAuthor().getId().equals(requesterId);
-        boolean isAdmin = requester != null && requester.getRole() == Role.ADMIN;
+        boolean isAdmin  = requester != null && requester.getRole() == Role.ADMIN;
 
         if (!isAuthor && !isAdmin) {
             throw new SecurityException("You do not have permission to delete this post.");
@@ -110,6 +105,10 @@ public class PostService {
 
     public Post findById(Long postId) {
         return getPostOrThrow(postId);
+    }
+
+    public List<Post> findAll() {
+        return postDao.findAll();
     }
 
     public List<Post> getGlobalFeed() {
