@@ -62,11 +62,7 @@ public class GroupService {
         if (group == null) throw new IllegalArgumentException("Group not found.");
 
         if (groupMemberDao.findMember(groupId, userId).isPresent()) {
-            throw new IllegalStateException("You are already a member of this group.");
-        }
-
-        if (group.getType() == GroupType.PRIVATE) {
-            throw new SecurityException("This group is private. You need an invitation to join.");
+            throw new IllegalStateException("You are already a member or have a pending request.");
         }
 
         GroupMember membership = new GroupMember();
@@ -74,8 +70,33 @@ public class GroupService {
         membership.setUser(user);
         membership.setRole(GroupRole.MEMBER);
 
+        if (group.getType() == GroupType.PRIVATE) {
+            membership.setStatus(MembershipStatus.PENDING);
+        } else {
+            membership.setStatus(MembershipStatus.APPROVED);
+        }
+
         groupMemberDao.save(membership);
         return membership;
+    }
+
+    public void acceptRequest(Long requesterId, Long groupId, Long targetUserId) {
+        assertGroupAdmin(requesterId, groupId);
+        GroupMember target = groupMemberDao.findMember(groupId, targetUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Request not found."));
+        if (target.getStatus() == MembershipStatus.PENDING) {
+            target.setStatus(MembershipStatus.APPROVED);
+            groupMemberDao.update(target);
+        }
+    }
+
+    public void refuseRequest(Long requesterId, Long groupId, Long targetUserId) {
+        assertGroupAdmin(requesterId, groupId);
+        GroupMember target = groupMemberDao.findMember(groupId, targetUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Request not found."));
+        if (target.getStatus() == MembershipStatus.PENDING) {
+            groupMemberDao.delete(target);
+        }
     }
 
     /**
@@ -134,21 +155,37 @@ public class GroupService {
         return group;
     }
 
-    public List<Group> getPublicGroups() {
-        return groupDao.findPublicGroups();
+    public List<Group> getAllGroups() {
+        return groupDao.findAllGroups();
+    }
+
+    public List<Group> getMyAdminGroups(Long userId) {
+        return groupDao.findMyAdminGroups(userId);
     }
 
     public List<GroupMember> getMembers(Long groupId) {
         return groupMemberDao.findByGroupId(groupId);
     }
 
+    public List<GroupMember> getPendingMembers(Long groupId) {
+        return groupMemberDao.findPendingMembers(groupId);
+    }
+
     public boolean isMember(Long userId, Long groupId) {
-        return groupMemberDao.findMember(groupId, userId).isPresent();
+        return groupMemberDao.findMember(groupId, userId)
+                .map(m -> m.getStatus() == MembershipStatus.APPROVED)
+                .orElse(false);
+    }
+
+    public boolean isPending(Long userId, Long groupId) {
+        return groupMemberDao.findMember(groupId, userId)
+                .map(m -> m.getStatus() == MembershipStatus.PENDING)
+                .orElse(false);
     }
 
     public boolean isGroupAdmin(Long userId, Long groupId) {
         return groupMemberDao.findMember(groupId, userId)
-                .map(m -> m.getRole() == GroupRole.ADMIN)
+                .map(m -> m.getRole() == GroupRole.ADMIN && m.getStatus() == MembershipStatus.APPROVED)
                 .orElse(false);
     }
 

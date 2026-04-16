@@ -37,8 +37,14 @@
             <p>#{groupBean.currentGroup.description}</p>
             
             <h:form style="margin-bottom: 20px;">
-                <ui:fragment rendered="#{not groupBean.member}">
-                    <h:commandButton value="Join Group" action="#{groupBean.joinGroup(groupBean.currentGroup.id)}" />
+                <ui:fragment rendered="#{not groupBean.member and not groupBean.pending}">
+                    <h:commandButton value="#{groupBean.currentGroup.type eq 'PRIVATE' ? 'Request to Join' : 'Join Group'}" 
+                                     action="#{groupBean.joinGroup(groupBean.currentGroup.id)}" />
+                </ui:fragment>
+                <ui:fragment rendered="#{groupBean.pending}">
+                    <span style="display:inline-block; padding:5px 10px; background:#fff3cd; color:#856404; border:1px solid #ffeeba; border-radius:3px;">
+                        Request Pending
+                    </span>
                 </ui:fragment>
                 <ui:fragment rendered="#{groupBean.member}">
                     <h:commandButton value="Leave Group" action="#{groupBean.leaveGroup}" onclick="return confirm('Leave this group?');" />
@@ -103,6 +109,33 @@
                     </ui:repeat>
                 </ul>
             </ui:fragment>
+
+            <!-- PENDING REQUESTS -->
+            <ui:fragment rendered="#{groupBean.admin}">
+                <hr style="margin-top:20px;"/>
+                <h3 style="color:#a83232;">Pending Requests</h3>
+                <ui:fragment rendered="#{empty groupBean.pendingMembers}">
+                    <p style="font-size:12px; color:#666;">No pending requests.</p>
+                </ui:fragment>
+                <ul style="list-style:none; padding:0;">
+                    <ui:repeat value="#{groupBean.pendingMembers}" var="pm">
+                        <li style="margin-bottom: 10px; background:#fff9f9; padding:5px; border:1px solid #fcc;">
+                            <h:link outcome="/profile/view.xhtml">
+                                <f:param name="userId" value="#{pm.user.id}" />
+                                #{pm.user.username}
+                            </h:link>
+                            <div style="margin-top:5px;">
+                                <h:form style="display:inline;">
+                                    <h:commandLink value="Accept" action="#{groupBean.acceptRequest(pm.user.id)}" style="color:green; font-weight:bold; font-size:12px;" />
+                                    &#160;|&#160;
+                                    <h:commandLink value="Refuse" action="#{groupBean.refuseRequest(pm.user.id)}" style="color:red; font-size:12px;" />
+                                </h:form>
+                            </div>
+                        </li>
+                    </ui:repeat>
+                </ul>
+            </ui:fragment>
+
         </div>
     </div>
 

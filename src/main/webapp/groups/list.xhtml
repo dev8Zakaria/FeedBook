@@ -2,7 +2,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="jakarta.faces.html"
       xmlns:f="jakarta.faces.core"
-      xmlns:ui="jakarta.faces.facelets">
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:c="jakarta.tags.core">
 <h:head>
     <title>Groups - FeedBook</title>
     <style>
@@ -15,34 +16,81 @@
         <f:viewAction action="#{groupBean.loadGroups}" />
     </f:metadata>
 
-    <h2>Public Groups</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2>Groups Directory</h2>
+        <h:form rendered="#{authBean.loggedIn}">
+            <h:commandLink value="#{groupBean.showMyGroups ? 'Show All Groups' : 'Show My Admin Groups'}" 
+                           action="#{groupBean.toggleMyGroups}" 
+                           style="padding:5px 10px; background:#eee; border:1px solid #ccc; text-decoration:none; color:black;"/>
+        </h:form>
+    </div>
+
     <h:link outcome="/index.xhtml" value="&lt; Back to Home" /> | 
     <h:link outcome="/groups/new.xhtml" value="+ Create New Group" />
     <hr/>
 
     <h:messages globalOnly="true" />
 
-    <ui:fragment rendered="#{empty groupBean.publicGroups}">
-        <p>No public groups found.</p>
+    <c:set var="targetList" value="#{groupBean.showMyGroups ? groupBean.myGroups : groupBean.allGroups}" />
+
+    <ui:fragment rendered="#{empty targetList}">
+        <p>No groups found.</p>
     </ui:fragment>
 
-    <ui:repeat value="#{groupBean.publicGroups}" var="group">
-        <div class="group-card" style="display:flex; gap:15px; align-items:center;">
-            <h:panelGroup rendered="#{not empty group.imageUrl}">
-                <img src="#{request.contextPath}/resources/#{group.imageUrl}" 
-                     style="width: 50px; height: 50px; border-radius: 4px; object-fit: cover;" />
-            </h:panelGroup>
-            <div>
-                <h3 style="margin:0;">#{group.name} 
-                    <small style="color:#666; font-size:12px;">(#{group.type})</small>
-                </h3>
-                <p style="margin:5px 0;">#{group.description}</p>
-                <h:link outcome="/groups/view.xhtml" value="View Group">
-                    <f:param name="groupId" value="#{group.id}" />
-                </h:link>
-            </div>
-        </div>
-    </ui:repeat>
+    <ui:fragment rendered="#{not empty targetList}">
+        <input type="text" id="groupSearch" onkeyup="filterGroups()" placeholder="Search groups by name..." style="margin-bottom: 20px; padding: 8px; width: 300px; border: 1px solid #ccc; border-radius: 4px; display: block;" />
+    </ui:fragment>
 
+    <div id="groupsContainer">
+        <ui:repeat value="#{targetList}" var="group">
+            <div class="group-card" style="display:flex; gap:15px; align-items:center;">
+                <h:panelGroup rendered="#{not empty group.imageUrl}">
+                    <img src="#{request.contextPath}/resources/#{group.imageUrl}" 
+                         style="width: 50px; height: 50px; border-radius: 4px; object-fit: cover;" />
+                </h:panelGroup>
+                <div style="flex-grow: 1;">
+                    <h3 class="group-name" style="margin:0;">#{group.name} 
+                        <small style="color:#666; font-size:12px;">(#{group.type})</small>
+                    </h3>
+                    <p style="margin:5px 0;">#{group.description}</p>
+                    
+                    <h:link outcome="/groups/view.xhtml" value="View Group">
+                        <f:param name="groupId" value="#{group.id}" />
+                    </h:link>
+                </div>
+                <div>
+                   <h:form style="margin:0;">
+                       <ui:fragment rendered="#{group.type eq 'PRIVATE'}">
+                           <h:commandButton value="Request to Join" action="#{groupBean.requestJoinContext(group.id)}" onclick="return confirm('Send request?');" />
+                       </ui:fragment>
+                       <ui:fragment rendered="#{group.type eq 'PUBLIC'}">
+                           <h:commandButton value="Join" action="#{groupBean.joinGroup(group.id)}" />
+                       </ui:fragment>
+                   </h:form>
+                </div>
+            </div>
+        </ui:repeat>
+    </div>
+
+    <script>
+        function filterGroups() {
+            var input = document.getElementById("groupSearch");
+            var filter = input.value.toUpperCase();
+            var container = document.getElementById("groupsContainer");
+            var cards = container.getElementsByClassName("group-card");
+
+            for (var i = 0; i &lt; cards.length; i++) {
+                var nameEl = cards[i].getElementsByClassName("group-name")[0];
+                if (nameEl) {
+                    var txtValue = nameEl.textContent || nameEl.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) &gt; -1) {
+                        cards[i].style.display = "flex";
+                    } else {
+                        cards[i].style.display = "none";
+                    }
+                }
+            }
+        }
+    </script>
 </h:body>
 </html>

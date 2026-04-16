@@ -25,6 +25,10 @@ public class GroupMember {
     @Column(nullable = false)
     private GroupRole role = GroupRole.MEMBER;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MembershipStatus status = MembershipStatus.APPROVED;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime joinedAt;
 
@@ -41,6 +45,8 @@ public class GroupMember {
     public void setUser(User user) { this.user = user; }
     public GroupRole getRole() { return role; }
     public void setRole(GroupRole role) { this.role = role; }
+    public MembershipStatus getStatus() { return status; }
+    public void setStatus(MembershipStatus status) { this.status = status; }
     public LocalDateTime getJoinedAt() { return joinedAt; }
     public void setJoinedAt(LocalDateTime joinedAt) { this.joinedAt = joinedAt; }
 }

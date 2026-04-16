@@ -36,6 +36,14 @@ public class AdminBean {
         allPosts = postService.findAll();
     }
 
+    public void checkAdmin() {
+        if (!authBean.isLoggedIn() || authBean.getCurrentUser().getRole() != Role.ADMIN) {
+            try {
+                FacesContext.getCurrentInstance().getExternalContext().redirect(FacesContext.getCurrentInstance().getExternalContext().getRequestContextPath() + "/index.xhtml");
+            } catch (Exception e) {}
+        }
+    }
+
     // ------------------------------------------------------------------ Users
 
     public String banUser(Long targetUserId) {

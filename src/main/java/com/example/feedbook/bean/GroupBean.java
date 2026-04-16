@@ -35,13 +35,16 @@ public class GroupBean implements Serializable {
     private ImageService imageService;
 
     // List
-    private List<Group> publicGroups;
+    private List<Group> allGroups;
+    private List<Group> myGroups;
+    private boolean showMyGroups = false;
 
     // View
     private Long groupId;
     private Group currentGroup;
     private List<Post> groupPosts;
     private List<GroupMember> members;
+    private List<GroupMember> pendingMembers;
 
     // New
     private String newGroupName;
@@ -53,7 +56,14 @@ public class GroupBean implements Serializable {
     public void init() {}
 
     public void loadGroups() {
-        publicGroups = groupService.getPublicGroups();
+        allGroups = groupService.getAllGroups();
+        if (authBean.isLoggedIn()) {
+            myGroups = groupService.getMyAdminGroups(authBean.getCurrentUser().getId());
+        }
+    }
+
+    public void toggleMyGroups() {
+        showMyGroups = !showMyGroups;
     }
 
     public void loadGroup() {
@@ -62,13 +72,16 @@ public class GroupBean implements Serializable {
                 currentGroup = groupService.findById(groupId);
                 
                 // Security check
-                if (currentGroup.getType() == GroupType.PRIVATE && !isMember()) {
+                if (currentGroup.getType() == GroupType.PRIVATE && !isMember() && !isAdmin()) {
                     FacesContext.getCurrentInstance().getExternalContext().redirect(FacesContext.getCurrentInstance().getExternalContext().getRequestContextPath() + "/groups/list.xhtml");
                     return;
                 }
                 
                 groupPosts = postService.getGroupPosts(groupId);
                 members = groupService.getMembers(groupId);
+                if (isAdmin()) {
+                    pendingMembers = groupService.getPendingMembers(groupId);
+                }
             } catch (Exception e) {
                 FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Group not found or access denied.", null));
             }
@@ -78,6 +91,11 @@ public class GroupBean implements Serializable {
     public boolean isMember() {
         if (!authBean.isLoggedIn() || currentGroup == null) return false;
         return groupService.isMember(authBean.getCurrentUser().getId(), currentGroup.getId());
+    }
+
+    public boolean isPending() {
+        if (!authBean.isLoggedIn() || currentGroup == null) return false;
+        return groupService.isPending(authBean.getCurrentUser().getId(), currentGroup.getId());
     }
 
     public boolean isAdmin() {
@@ -93,6 +111,39 @@ public class GroupBean implements Serializable {
         } catch (Exception e) {
             FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
             return null;
+        }
+    }
+
+    public void requestJoinContext(Long targetGroupId) {
+        if (!authBean.isLoggedIn()) return;
+        try {
+            groupService.joinGroup(authBean.getCurrentUser().getId(), targetGroupId);
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_INFO, "Join request sent.", null));
+        } catch (Exception e) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+        }
+    }
+
+    public void acceptRequest(Long targetUserId) {
+        if (!isAdmin()) return;
+        try {
+            groupService.acceptRequest(authBean.getCurrentUser().getId(), currentGroup.getId(), targetUserId);
+            // reload
+            members = groupService.getMembers(currentGroup.getId());
+            pendingMembers = groupService.getPendingMembers(currentGroup.getId());
+        } catch (Exception e) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
+        }
+    }
+
+    public void refuseRequest(Long targetUserId) {
+        if (!isAdmin()) return;
+        try {
+            groupService.refuseRequest(authBean.getCurrentUser().getId(), currentGroup.getId(), targetUserId);
+            // reload
+            pendingMembers = groupService.getPendingMembers(currentGroup.getId());
+        } catch (Exception e) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, e.getMessage(), null));
         }
     }
 
@@ -141,7 +192,10 @@ public class GroupBean implements Serializable {
     }
 
     // Getters and Setters
-    public List<Group> getPublicGroups() { return publicGroups; }
+    public List<Group> getAllGroups() { return allGroups; }
+    public List<Group> getMyGroups() { return myGroups; }
+    public boolean isShowMyGroups() { return showMyGroups; }
+    public List<GroupMember> getPendingMembers() { return pendingMembers; }
     public Long getGroupId() { return groupId; }
     public void setGroupId(Long groupId) { this.groupId = groupId; }
     public Group getCurrentGroup() { return currentGroup; }

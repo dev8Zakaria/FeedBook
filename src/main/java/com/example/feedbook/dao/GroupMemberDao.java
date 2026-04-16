@@ -15,7 +15,13 @@ public class GroupMemberDao extends GenericDao<GroupMember, Long> {
     }
 
     public List<GroupMember> findByGroupId(Long groupId) {
-        return em.createQuery("FROM GroupMember gm WHERE gm.group.id = :groupId ORDER BY gm.joinedAt DESC", GroupMember.class)
+        return em.createQuery("FROM GroupMember gm WHERE gm.group.id = :groupId AND gm.status = 'APPROVED' ORDER BY gm.joinedAt DESC", GroupMember.class)
+                .setParameter("groupId", groupId)
+                .getResultList();
+    }
+
+    public List<GroupMember> findPendingMembers(Long groupId) {
+        return em.createQuery("FROM GroupMember gm WHERE gm.group.id = :groupId AND gm.status = 'PENDING' ORDER BY gm.joinedAt DESC", GroupMember.class)
                 .setParameter("groupId", groupId)
                 .getResultList();
     }

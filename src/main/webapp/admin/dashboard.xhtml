@@ -20,6 +20,9 @@
     </style>
 </h:head>
 <h:body>
+    <f:metadata>
+        <f:viewAction action="#{adminBean.checkAdmin}" />
+    </f:metadata>
 
     <h:messages globalOnly="true" style="color:red;" />
 
@@ -30,6 +33,7 @@
     <!-- ═══════════════════════════════════════════ USERS SECTION -->
     <div class="section">
         <h2>Users (#{adminBean.allUsers.size()})</h2>
+        <input type="text" id="userSearch" onkeyup="filterUsers()" placeholder="Search by username..." style="margin-bottom: 10px; padding: 6px; width: 300px; border: 1px solid #ccc; border-radius: 4px;" />
         <table>
             <thead>
                 <tr>
@@ -42,7 +46,7 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="userTableBody">
                 <ui:repeat value="#{adminBean.allUsers}" var="u">
                     <tr>
                         <td>#{u.id}</td>
@@ -103,6 +107,7 @@
     <!-- ═══════════════════════════════════════════ POSTS SECTION -->
     <div class="section">
         <h2>All Posts (#{adminBean.allPosts.size()})</h2>
+        <input type="text" id="postSearch" onkeyup="filterPosts()" placeholder="Search by author..." style="margin-bottom: 10px; padding: 6px; width: 300px; border: 1px solid #ccc; border-radius: 4px;" />
         <table>
             <thead>
                 <tr>
@@ -115,7 +120,7 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="postTableBody">
                 <ui:repeat value="#{adminBean.allPosts}" var="p">
                     <tr>
                         <td>#{p.id}</td>
@@ -156,5 +161,44 @@
         </table>
     </div>
 
+    <script>
+        function filterUsers() {
+            var input, filter, tbody, tr, td, i, txtValue;
+            input = document.getElementById("userSearch");
+            filter = input.value.toUpperCase();
+            tbody = document.getElementById("userTableBody");
+            tr = tbody.getElementsByTagName("tr");
+            for (i = 0; i &lt; tr.length; i++) {
+                td = tr[i].getElementsByTagName("td")[1]; // Column 1: Username
+                if (td) {
+                    txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) &gt; -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }       
+            }
+        }
+
+        function filterPosts() {
+            var input, filter, tbody, tr, td, i, txtValue;
+            input = document.getElementById("postSearch");
+            filter = input.value.toUpperCase();
+            tbody = document.getElementById("postTableBody");
+            tr = tbody.getElementsByTagName("tr");
+            for (i = 0; i &lt; tr.length; i++) {
+                td = tr[i].getElementsByTagName("td")[1]; // Column 1: Author
+                if (td) {
+                    txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) &gt; -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }       
+            }
+        }
+    </script>
 </h:body>
 </html>
