@@ -12,7 +12,8 @@
     <p>Logged in as: <strong>#{authBean.currentUser.username}</strong></p>
 
     <h:link outcome="/post/new.xhtml" value="+ New Post" /> |
-    <h:form>
+    <h:link outcome="/feed.xhtml" value="My Feed" /> |
+    <h:form style="display:inline">
         <h:commandLink value="Logout" action="#{authBean.logout}" />
     </h:form>
 
@@ -30,7 +31,10 @@
             <c:forEach items="#{postBean.globalFeed}" var="post">
                 <div style="border:1px solid #ccc; margin-bottom:16px; padding:12px;">
                     <p>
-                        <strong>#{post.author.username}</strong>
+                        <h:link outcome="/profile/view.xhtml">
+                            <f:param name="userId" value="#{post.author.id}"/>
+                            <strong>#{post.author.username}</strong>
+                        </h:link>
                         &#160;·&#160;
                         <h:outputText value="#{post.createdAt}">
                             <f:convertDateTime pattern="dd MMM yyyy HH:mm" type="localDateTime"/>

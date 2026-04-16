@@ -32,6 +32,7 @@ public class PostBean implements Serializable {
 
     // Feed
     private List<Post> globalFeed;
+    private List<Post> followedFeed;
 
     // New post form
     private String newContent;
@@ -62,6 +63,13 @@ public class PostBean implements Serializable {
             globalFeed = postService.getGlobalFeed();
         }
         return globalFeed;
+    }
+
+    public List<Post> getFollowedFeed() {
+        if (followedFeed == null && authBean.isLoggedIn()) {
+            followedFeed = postService.getFollowFeed(authBean.getCurrentUser().getId());
+        }
+        return followedFeed;
     }
 
     // -------------------------------------------------------------------------
