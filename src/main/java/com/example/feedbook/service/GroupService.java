@@ -26,7 +26,7 @@ public class GroupService {
      * Create a group. The creator is automatically added as ADMIN.
      */
     
-    public Group createGroup(Long ownerId, String name, String description, GroupType type) {
+    public Group createGroup(Long ownerId, String name, String description, GroupType type, String imageUrl) {
         User owner = userDao.findById(ownerId);
         if (owner == null) throw new IllegalArgumentException("User not found.");
 
@@ -35,6 +35,7 @@ public class GroupService {
         group.setDescription(description);
         group.setType(type);
         group.setOwner(owner);
+        group.setImageUrl(imageUrl);
 
         groupDao.save(group);
 

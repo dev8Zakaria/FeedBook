@@ -37,6 +37,7 @@ public class PostBean implements Serializable {
 
     // Feed
     private List<Post> globalFeed;
+    private List<Post> followedFeed;
 
     // New post form
     private String newContent;
@@ -70,21 +71,38 @@ public class PostBean implements Serializable {
         return globalFeed;
     }
 
+    public List<Post> getFollowedFeed() {
+        if (followedFeed == null && authBean.isLoggedIn()) {
+            followedFeed = postService.getFollowFeed(authBean.getCurrentUser().getId());
+        }
+        return followedFeed;
+    }
+
     // -------------------------------------------------------------------------
     // Create post
     // -------------------------------------------------------------------------
 
+    private Long groupId; // optional, for group posts
+
     public String doCreatePost() {
         try {
             String imageUrl = imageService != null ? imageService.saveImage(newImage) : null;
-            PostVisibility vis = PostVisibility.valueOf(newVisibility);
-            postService.createPost(authBean.getCurrentUser().getId(), newContent, vis, imageUrl);
-            return "/index.xhtml?faces-redirect=true";
+            if (groupId != null) {
+                postService.createGroupPost(authBean.getCurrentUser().getId(), groupId, newContent, imageUrl);
+                return "/groups/view.xhtml?groupId=" + groupId + "&faces-redirect=true";
+            } else {
+                PostVisibility vis = PostVisibility.valueOf(newVisibility);
+                postService.createPost(authBean.getCurrentUser().getId(), newContent, vis, imageUrl);
+                return "/index.xhtml?faces-redirect=true";
+            }
         } catch (Exception e) {
-            addError("Could not create post: " + e.getMessage());
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Could not create post: " + e.getMessage(), null));
             return null;
         }
     }
+
+    public Long getGroupId() { return groupId; }
+    public void setGroupId(Long groupId) { this.groupId = groupId; }
 
     // -------------------------------------------------------------------------
     // View post + comments

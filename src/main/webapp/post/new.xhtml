@@ -7,13 +7,28 @@
 </h:head>
 <h:body>
 
+    <f:metadata>
+        <f:viewParam name="groupId" value="#{postBean.groupId}" />
+    </f:metadata>
+
     <h2>New Post</h2>
-    <h:link outcome="/index.xhtml" value="&lt; Back to Feed" />
+    
+    <h:panelGroup rendered="#{empty postBean.groupId}">
+        <h:link outcome="/index.xhtml" value="&lt; Back to Feed" />
+    </h:panelGroup>
+    <h:panelGroup rendered="#{not empty postBean.groupId}">
+        <h:link outcome="/groups/view.xhtml" value="&lt; Back to Group">
+            <f:param name="groupId" value="#{postBean.groupId}"/>
+        </h:link>
+    </h:panelGroup>
+    
     <hr/>
 
     <h:messages globalOnly="true" />
 
     <h:form id="newPostForm" enctype="multipart/form-data">
+        <!-- Pass groupId along with form if set -->
+        <h:inputHidden value="#{postBean.groupId}" rendered="#{not empty postBean.groupId}" />
 
         <p>
             <h:outputLabel for="content" value="Content" /><br/>
@@ -27,13 +42,15 @@
             <h:inputFile id="image" value="#{postBean.newImage}" />
         </p>
 
-        <p>
-            <h:outputLabel for="visibility" value="Visibility" /><br/>
-            <h:selectOneMenu id="visibility" value="#{postBean.newVisibility}">
-                <f:selectItem itemValue="PUBLIC" itemLabel="Public" />
-                <f:selectItem itemValue="PRIVATE" itemLabel="Private" />
-            </h:selectOneMenu>
-        </p>
+        <h:panelGroup rendered="#{empty postBean.groupId}">
+            <p>
+                <h:outputLabel for="visibility" value="Visibility" /><br/>
+                <h:selectOneMenu id="visibility" value="#{postBean.newVisibility}">
+                    <f:selectItem itemValue="PUBLIC" itemLabel="Public" />
+                    <f:selectItem itemValue="PRIVATE" itemLabel="Private" />
+                </h:selectOneMenu>
+            </p>
+        </h:panelGroup>
 
         <h:commandButton value="Post" action="#{postBean.doCreatePost}" />
 

@@ -28,6 +28,9 @@ public class Group {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -45,4 +48,6 @@ public class Group {
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public User getOwner() { return owner; }
     public void setOwner(User owner) { this.owner = owner; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

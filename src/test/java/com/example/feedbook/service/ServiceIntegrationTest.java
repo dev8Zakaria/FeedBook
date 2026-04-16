@@ -391,7 +391,7 @@ public class ServiceIntegrationTest {
     @Order(22)
     public void testCreateGroup() {
         em.getTransaction().begin();
-        Group group = groupService.createGroup(userId, "Test Group", "A test group", GroupType.PUBLIC);
+        Group group = groupService.createGroup(userId, "Test Group", "Description", GroupType.PUBLIC, null);
         em.getTransaction().commit();
 
         assertNotNull(group.getId());

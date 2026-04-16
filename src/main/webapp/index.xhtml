@@ -13,6 +13,7 @@
 
     <h:link outcome="/post/new.xhtml" value="+ New Post" /> |
     <h:link outcome="/feed.xhtml" value="My Feed" /> |
+    <h:link outcome="/groups/list.xhtml" value="Groups" /> |
     <h:form style="display:inline">
         <h:commandLink value="Logout" action="#{authBean.logout}" />
     </h:form>
@@ -32,9 +33,16 @@
                 <div style="border:1px solid #ccc; margin-bottom:16px; padding:12px;">
                 <p>
                         <h:link outcome="/profile/view.xhtml">
-                            <f:param name="userId" value="#{post.author.id}" />
-                            #{post.author.username}
+                            <f:param name="userId" value="#{post.author.id}"/>
+                            <strong>#{post.author.username}</strong>
                         </h:link>
+                        <h:panelGroup rendered="#{not empty post.group}">
+                            &#160;&gt;&#160;
+                            <h:link outcome="/groups/view.xhtml">
+                                <f:param name="groupId" value="#{post.group.id}"/>
+                                <strong>#{post.group.name}</strong>
+                            </h:link>
+                        </h:panelGroup>
                         &#160;·&#160;
                         <h:outputText value="#{post.createdAt}">
                             <f:convertDateTime pattern="dd MMM yyyy HH:mm" type="localDateTime"/>

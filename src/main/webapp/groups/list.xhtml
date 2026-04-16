@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets">
+<h:head>
+    <title>Groups - FeedBook</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        .group-card { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
+    </style>
+</h:head>
+<h:body>
+    <f:metadata>
+        <f:viewAction action="#{groupBean.loadGroups}" />
+    </f:metadata>
+
+    <h2>Public Groups</h2>
+    <h:link outcome="/index.xhtml" value="&lt; Back to Home" /> | 
+    <h:link outcome="/groups/new.xhtml" value="+ Create New Group" />
+    <hr/>
+
+    <h:messages globalOnly="true" />
+
+    <ui:fragment rendered="#{empty groupBean.publicGroups}">
+        <p>No public groups found.</p>
+    </ui:fragment>
+
+    <ui:repeat value="#{groupBean.publicGroups}" var="group">
+        <div class="group-card" style="display:flex; gap:15px; align-items:center;">
+            <h:panelGroup rendered="#{not empty group.imageUrl}">
+                <img src="#{request.contextPath}/resources/#{group.imageUrl}" 
+                     style="width: 50px; height: 50px; border-radius: 4px; object-fit: cover;" />
+            </h:panelGroup>
+            <div>
+                <h3 style="margin:0;">#{group.name} 
+                    <small style="color:#666; font-size:12px;">(#{group.type})</small>
+                </h3>
+                <p style="margin:5px 0;">#{group.description}</p>
+                <h:link outcome="/groups/view.xhtml" value="View Group">
+                    <f:param name="groupId" value="#{group.id}" />
+                </h:link>
+            </div>
+        </div>
+    </ui:repeat>
+
+</h:body>
+</html>

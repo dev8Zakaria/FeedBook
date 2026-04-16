@@ -36,6 +36,13 @@
                         <f:param name="userId" value="#{post.author.id}" />
                         #{post.author.username}
                  </h:link>
+                 <h:panelGroup rendered="#{not empty post.group}">
+                    &#160;&gt;&#160;
+                    <h:link outcome="/groups/view.xhtml" styleClass="author-link">
+                        <f:param name="groupId" value="#{post.group.id}" />
+                        #{post.group.name}
+                    </h:link>
+                 </h:panelGroup>
                  <br/>
                  <small>#{post.createdAt}</small>
                  <p>#{post.content}</p>
