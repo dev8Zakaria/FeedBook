@@ -1,59 +1,100 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:f="jakarta.faces.core"
-      xmlns:ui="jakarta.faces.facelets">
-<h:head>
-    <title>Profile - FeedBook</title>
-    <!-- Minimal styling requested by user -->
-    <style>
-        body { font-family: sans-serif; margin: 20px; }
-        .card { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
-        .header { display: flex; justify-content: space-between; align-items: center; }
-        ul { list-style-type: none; padding: 0; }
-        li { padding: 5px 0; border-bottom: 1px solid #eee; }
-        a { text-decoration: none; color: blue; }
-        .stats { display: flex; gap: 20px; margin-top: 10px; color: #555; }
-    </style>
-</h:head>
-<h:body>
-    <f:metadata>
-        <f:viewParam name="userId" value="#{profileBean.userId}"/>
-        <f:viewAction action="#{profileBean.loadProfile}"/>
-    </f:metadata>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                template="/WEB-INF/templates/layout.xhtml">
 
-    <div class="card">
-        <div class="header">
-            <h2>#{profileBean.profileUser.firstName} #{profileBean.profileUser.lastName} (@#{profileBean.profileUser.username})</h2>
-            <h:form>
-                <h:commandButton value="Edit Profile" action="/profile/edit.xhtml?faces-redirect=true" rendered="#{profileBean.myProfile}" />
-                <h:commandButton value="#{profileBean.isFollowing ? 'Unfollow' : 'Follow'}" action="#{profileBean.toggleFollow}" rendered="#{not profileBean.myProfile and authBean.loggedIn}" />
-                <h:link outcome="/index.xhtml" value="Back to Home" style="margin-left:10px;"/>
-            </h:form>
+    <ui:define name="title">Profile — FeedBook</ui:define>
+
+    <ui:define name="content">
+        <f:metadata>
+            <f:viewParam name="userId" value="#{profileBean.userId}"/>
+            <f:viewAction action="#{profileBean.loadProfile}"/>
+        </f:metadata>
+
+        <h:link outcome="/index.xhtml" value="Back to Home" styleClass="fb-back" />
+
+        <div class="fb-card" style="margin-bottom:28px;">
+            <div class="fb-profile-card">
+                <div>
+                    <h:graphicImage library="uploads" name="#{profileBean.profileUser.profilePictureUrl.substring(8)}"
+                                    rendered="#{not empty profileBean.profileUser.profilePictureUrl}"
+                                    styleClass="fb-avatar fb-avatar--lg" />
+                    <ui:fragment rendered="#{empty profileBean.profileUser.profilePictureUrl}">
+                        <div class="fb-avatar-placeholder" style="width:110px; height:110px; font-size:2.4rem;">
+                            #{profileBean.profileUser.username.substring(0,1).toUpperCase()}
+                        </div>
+                    </ui:fragment>
+                </div>
+
+                <div style="flex:1;">
+                    <h1 class="fb-page-title" style="margin-bottom:2px;">
+                        #{profileBean.profileUser.firstName} #{profileBean.profileUser.lastName}
+                    </h1>
+                    <p style="color:var(--ink-muted); font-size:0.9rem; margin-bottom:10px;">
+                        @#{profileBean.profileUser.username}
+                    </p>
+
+                    <p style="font-style:italic; color:var(--ink-secondary); font-size:0.95rem; margin-bottom:14px;">
+                        #{not empty profileBean.profileUser.bio ? profileBean.profileUser.bio : 'No bio provided.'}
+                    </p>
+
+                    <div class="fb-stats">
+                        <div class="fb-stat">
+                            <span class="fb-stat__number">#{profileBean.userPosts.size()}</span>
+                            <span class="fb-stat__label">Posts</span>
+                        </div>
+                        <div class="fb-stat">
+                            <span class="fb-stat__number">#{profileBean.followers.size()}</span>
+                            <span class="fb-stat__label">Followers</span>
+                        </div>
+                        <div class="fb-stat">
+                            <span class="fb-stat__number">#{profileBean.following.size()}</span>
+                            <span class="fb-stat__label">Following</span>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:16px;" class="fb-flex fb-flex--gap-sm">
+                        <h:form style="display:inline; margin:0;">
+                            <h:commandButton value="Edit Profile"
+                                             action="/profile/edit.xhtml?faces-redirect=true"
+                                             rendered="#{profileBean.myProfile}"
+                                             styleClass="fb-btn fb-btn--outline fb-btn--sm" />
+                            <h:commandButton value="#{profileBean.isFollowing ? 'Unfollow' : 'Follow'}"
+                                             action="#{profileBean.toggleFollow}"
+                                             rendered="#{not profileBean.myProfile and authBean.loggedIn}"
+                                             styleClass="fb-btn fb-btn--primary fb-btn--sm" />
+                        </h:form>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <p><i>#{not empty profileBean.profileUser.bio ? profileBean.profileUser.bio : 'No bio provided.'}</i></p>
 
-        <div class="stats">
-            <span><b>Posts:</b> #{profileBean.userPosts.size()}</span>
-            <span><b>Followers:</b> #{profileBean.followers.size()}</span>
-            <span><b>Following:</b> #{profileBean.following.size()}</span>
-        </div>
-    </div>
+        <!-- POSTS -->
+        <h2 class="fb-page-title" style="font-size:1.2rem;">Posts</h2>
+        <hr class="fb-divider" />
 
-    <h3>Posts</h3>
-    <h:panelGroup rendered="#{empty profileBean.userPosts}">
-        <p>No posts yet.</p>
-    </h:panelGroup>
+        <h:panelGroup rendered="#{empty profileBean.userPosts}">
+            <div class="fb-empty">
+                <p class="fb-empty__text">No posts yet.</p>
+            </div>
+        </h:panelGroup>
 
-    <ul>
         <ui:repeat value="#{profileBean.userPosts}" var="post">
-            <li>
-                <strong>#{post.createdAt}</strong> - <h:link outcome="/post/view.xhtml" value="View Post"><f:param name="postId" value="#{post.id}"/></h:link><br/>
-                #{post.content}
-            </li>
+            <div class="fb-post">
+                <div class="fb-post__meta">
+                    <span class="fb-post__time">#{post.createdAt}</span>
+                </div>
+                <p class="fb-post__body">#{post.content}</p>
+                <ui:fragment rendered="#{not empty post.imageUrl}">
+                    <h:graphicImage library="uploads" name="#{post.imageUrl.substring(8)}" class="fb-post__image" />
+                </ui:fragment>
+                <div class="fb-post__actions">
+                    <h:link outcome="/post/view.xhtml" value="View Post">
+                        <f:param name="postId" value="#{post.id}"/>
+                    </h:link>
+                </div>
+            </div>
         </ui:repeat>
-    </ul>
-
-</h:body>
-</html>
+    </ui:define>
+</ui:composition>

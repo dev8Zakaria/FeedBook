@@ -7,13 +7,27 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
 public class UserService {
 
     @Inject
-     UserDao userDao;
+    UserDao userDao;
+
+    @Inject
+    AuthService authService;
+
+    public List<User> findAll() {
+        return userDao.findAll();
+    }
+
+    public void updatePassword(Long userId, String plainPassword) {
+        User user = findById(userId);
+        user.setPassword(authService.hashPassword(plainPassword));
+        userDao.update(user);
+    }
 
     public User findById(Long id) {
         User user = userDao.findById(id);
@@ -31,12 +45,14 @@ public class UserService {
      * Update profile fields: firstName, lastName, bio.
      * Only the user themselves can do this (enforced in backing bean via session).
      */
-    
-    public User updateProfile(Long userId, String firstName, String lastName, String bio) {
+    public User updateProfile(Long userId, String firstName, String lastName, String bio, String profilePictureUrl) {
         User user = findById(userId);
         user.setFirstName(firstName);
         user.setLastName(lastName);
         user.setBio(bio);
+        if (profilePictureUrl != null && !profilePictureUrl.isEmpty()) {
+            user.setProfilePictureUrl(profilePictureUrl);
+        }
         userDao.update(user);
         return user;
     }
@@ -44,7 +60,6 @@ public class UserService {
     /**
      * Ban or unban a user. Only app admins can call this.
      */
-    
     public void setBanned(Long requesterId, Long targetUserId, boolean banned) {
         User requester = findById(requesterId);
         if (requester.getRole() != Role.ADMIN) {

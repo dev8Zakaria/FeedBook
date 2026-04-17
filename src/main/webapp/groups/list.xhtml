@@ -1,0 +1,104 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:c="jakarta.tags.core"
+                xmlns:ui="jakarta.faces.facelets"
+                template="/WEB-INF/templates/layout.xhtml">
+
+    <ui:define name="title">Groups — FeedBook</ui:define>
+
+    <ui:define name="content">
+        <f:metadata>
+            <f:viewAction action="#{groupBean.loadGroups}" />
+        </f:metadata>
+
+        <div class="fb-flex fb-flex--between fb-flex--center" style="margin-bottom:8px;">
+            <h1 class="fb-page-title">Groups</h1>
+            <div class="fb-flex fb-flex--gap-sm">
+                <h:link outcome="/groups/new.xhtml" value="+ Create Group" styleClass="fb-btn fb-btn--primary fb-btn--sm" />
+                <h:form rendered="#{authBean.loggedIn}" style="margin:0;">
+                    <h:commandLink value="#{groupBean.showMyGroups ? 'All Groups' : 'My Groups'}"
+                                   action="#{groupBean.toggleMyGroups}"
+                                   styleClass="fb-btn fb-btn--outline fb-btn--sm" />
+                </h:form>
+            </div>
+        </div>
+        <p class="fb-page-subtitle">Discover communities or manage the ones you run.</p>
+
+        <h:messages globalOnly="true" styleClass="fb-messages" />
+
+        <c:set var="targetList" value="#{groupBean.showMyGroups ? groupBean.myGroups : groupBean.allGroups}" />
+
+        <ui:fragment rendered="#{not empty targetList}">
+            <input type="text" id="groupSearch" onkeyup="filterGroups()" placeholder="Search groups..."
+                   class="fb-search" style="margin-bottom:20px;" />
+        </ui:fragment>
+
+        <ui:fragment rendered="#{empty targetList}">
+            <div class="fb-empty">
+                <p class="fb-empty__title">No groups found</p>
+                <p class="fb-empty__text">Start by creating a new community.</p>
+            </div>
+        </ui:fragment>
+
+        <div id="groupsContainer">
+            <ui:repeat value="#{targetList}" var="group">
+                <div class="fb-group-card">
+                    <h:panelGroup rendered="#{not empty group.imageUrl}">
+                        <img src="#{request.contextPath}/resources/#{group.imageUrl}" class="fb-group-img" />
+                    </h:panelGroup>
+                    <h:panelGroup rendered="#{empty group.imageUrl}">
+                        <div class="fb-avatar-placeholder" style="width:56px; height:56px; border-radius:var(--radius-md); font-size:1.2rem;">
+                            #{group.name.substring(0,1).toUpperCase()}
+                        </div>
+                    </h:panelGroup>
+
+                    <div style="flex:1;">
+                        <div class="fb-flex fb-flex--center fb-flex--gap-sm">
+                            <h3 class="group-name" style="margin:0; font-family:var(--font-display); font-size:1.05rem;">
+                                #{group.name}
+                            </h3>
+                            <span class="fb-badge #{group.type eq 'PUBLIC' ? 'fb-badge--public' : 'fb-badge--private'}">
+                                #{group.type}
+                            </span>
+                        </div>
+                        <p style="margin:4px 0 0; font-size:0.88rem; color:var(--ink-secondary);">#{group.description}</p>
+                    </div>
+
+                    <div class="fb-flex fb-flex--gap-sm">
+                        <h:link outcome="/groups/view.xhtml" value="View" styleClass="fb-btn fb-btn--ghost fb-btn--sm">
+                            <f:param name="groupId" value="#{group.id}" />
+                        </h:link>
+                        <h:form style="margin:0;">
+                            <ui:fragment rendered="#{group.type eq 'PRIVATE'}">
+                                <h:commandButton value="Request" action="#{groupBean.requestJoinContext(group.id)}"
+                                                 onclick="return confirm('Send request?');"
+                                                 styleClass="fb-btn fb-btn--outline fb-btn--sm" />
+                            </ui:fragment>
+                            <ui:fragment rendered="#{group.type eq 'PUBLIC'}">
+                                <h:commandButton value="Join" action="#{groupBean.joinGroup(group.id)}"
+                                                 styleClass="fb-btn fb-btn--primary fb-btn--sm" />
+                            </ui:fragment>
+                        </h:form>
+                    </div>
+                </div>
+            </ui:repeat>
+        </div>
+
+        <script>
+            function filterGroups() {
+                var input = document.getElementById("groupSearch");
+                var filter = input.value.toUpperCase();
+                var container = document.getElementById("groupsContainer");
+                var cards = container.getElementsByClassName("fb-group-card");
+                for (var i = 0; i &lt; cards.length; i++) {
+                    var nameEl = cards[i].getElementsByClassName("group-name")[0];
+                    if (nameEl) {
+                        var txt = nameEl.textContent || nameEl.innerText;
+                        cards[i].style.display = txt.toUpperCase().indexOf(filter) &gt; -1 ? "flex" : "none";
+                    }
+                }
+            }
+        </script>
+    </ui:define>
+</ui:composition>

@@ -1,0 +1,188 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                template="/WEB-INF/templates/layout.xhtml">
+
+    <ui:define name="title">Admin Dashboard — FeedBook</ui:define>
+
+    <ui:define name="content">
+        <f:metadata>
+            <f:viewAction action="#{adminBean.checkAdmin}" />
+        </f:metadata>
+
+        <h:messages globalOnly="true" styleClass="fb-messages" />
+
+        <h1 class="fb-page-title">⚙ Admin Dashboard</h1>
+        <p class="fb-page-subtitle">Manage users and moderate content across FeedBook.</p>
+
+        <!-- ═══════════════ USERS ═══════════════ -->
+        <div class="fb-card" style="margin-bottom:32px;">
+            <h2 style="font-family:var(--font-display); font-size:1.15rem; margin-bottom:14px;">
+                Users (#{adminBean.allUsers.size()})
+            </h2>
+            <input type="text" id="userSearch" onkeyup="filterUsers()" placeholder="Search by username..."
+                   class="fb-search" style="margin-bottom:16px;" />
+
+            <table class="fb-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    <ui:repeat value="#{adminBean.allUsers}" var="u">
+                        <tr>
+                            <td>#{u.id}</td>
+                            <td>
+                                <h:link outcome="/profile/view.xhtml" style="font-weight:500;">
+                                    <f:param name="userId" value="#{u.id}" />
+                                    #{u.username}
+                                </h:link>
+                            </td>
+                            <td style="color:var(--ink-muted);">#{u.email}</td>
+                            <td>
+                                <ui:fragment rendered="#{u.role eq 'ADMIN'}">
+                                    <span class="fb-badge fb-badge--admin">ADMIN</span>
+                                </ui:fragment>
+                                <ui:fragment rendered="#{u.role ne 'ADMIN'}">
+                                    <span style="font-size:0.82rem; color:var(--ink-muted);">USER</span>
+                                </ui:fragment>
+                            </td>
+                            <td>
+                                <ui:fragment rendered="#{u.isBanned}">
+                                    <span class="fb-badge fb-badge--banned">BANNED</span>
+                                </ui:fragment>
+                                <ui:fragment rendered="#{not u.isBanned}">
+                                    <span style="font-size:0.82rem; color:var(--success);">Active</span>
+                                </ui:fragment>
+                            </td>
+                            <td style="font-size:0.82rem; color:var(--ink-muted);">#{u.createdAt}</td>
+                            <td>
+                                <ui:fragment rendered="#{not adminBean.isCurrentUser(u.id) and u.role ne 'ADMIN'}">
+                                    <h:form style="display:inline; margin:0;">
+                                        <ui:fragment rendered="#{not u.isBanned}">
+                                            <h:commandButton value="Ban"
+                                                styleClass="fb-btn fb-btn--danger fb-btn--sm"
+                                                action="#{adminBean.banUser(u.id)}"
+                                                onclick="return confirm('Ban #{u.username}?');" />
+                                        </ui:fragment>
+                                        <ui:fragment rendered="#{u.isBanned}">
+                                            <h:commandButton value="Unban"
+                                                styleClass="fb-btn fb-btn--success fb-btn--sm"
+                                                action="#{adminBean.unbanUser(u.id)}" />
+                                        </ui:fragment>
+                                    </h:form>
+                                </ui:fragment>
+                                <ui:fragment rendered="#{adminBean.isCurrentUser(u.id)}">
+                                    <em style="color:var(--ink-muted); font-size:0.78rem;">You</em>
+                                </ui:fragment>
+                                <ui:fragment rendered="#{not adminBean.isCurrentUser(u.id) and u.role eq 'ADMIN'}">
+                                    <em style="color:var(--ink-muted); font-size:0.78rem;">Admin</em>
+                                </ui:fragment>
+                            </td>
+                        </tr>
+                    </ui:repeat>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ═══════════════ POSTS ═══════════════ -->
+        <div class="fb-card">
+            <h2 style="font-family:var(--font-display); font-size:1.15rem; margin-bottom:14px;">
+                All Posts (#{adminBean.allPosts.size()})
+            </h2>
+            <input type="text" id="postSearch" onkeyup="filterPosts()" placeholder="Search by author..."
+                   class="fb-search" style="margin-bottom:16px;" />
+
+            <table class="fb-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Author</th>
+                        <th>Content</th>
+                        <th>Visibility</th>
+                        <th>Group</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="postTableBody">
+                    <ui:repeat value="#{adminBean.allPosts}" var="p">
+                        <tr>
+                            <td>#{p.id}</td>
+                            <td>
+                                <h:link outcome="/profile/view.xhtml" style="font-weight:500;">
+                                    <f:param name="userId" value="#{p.author.id}" />
+                                    #{p.author.username}
+                                </h:link>
+                            </td>
+                            <td>
+                                <h:link outcome="/post/view.xhtml" style="color:var(--ink-secondary);">
+                                    <f:param name="postId" value="#{p.id}" />
+                                    #{p.content.length() gt 80 ? p.content.substring(0, 80).concat('…') : p.content}
+                                </h:link>
+                            </td>
+                            <td style="font-size:0.82rem;">#{p.visibility}</td>
+                            <td>
+                                <ui:fragment rendered="#{not empty p.group}">
+                                    <h:link outcome="/groups/view.xhtml" style="font-size:0.85rem;">
+                                        <f:param name="groupId" value="#{p.group.id}" />
+                                        #{p.group.name}
+                                    </h:link>
+                                </ui:fragment>
+                                <ui:fragment rendered="#{empty p.group}">
+                                    <span style="color:var(--ink-ghost);">—</span>
+                                </ui:fragment>
+                            </td>
+                            <td style="font-size:0.82rem; color:var(--ink-muted);">#{p.createdAt}</td>
+                            <td>
+                                <h:form style="display:inline; margin:0;">
+                                    <h:commandButton value="Delete"
+                                        styleClass="fb-btn fb-btn--danger fb-btn--sm"
+                                        action="#{adminBean.deletePost(p.id)}"
+                                        onclick="return confirm('Delete this post?');" />
+                                </h:form>
+                            </td>
+                        </tr>
+                    </ui:repeat>
+                </tbody>
+            </table>
+        </div>
+
+        <script>
+            function filterUsers() {
+                var input = document.getElementById("userSearch");
+                var filter = input.value.toUpperCase();
+                var tbody = document.getElementById("userTableBody");
+                var tr = tbody.getElementsByTagName("tr");
+                for (var i = 0; i &lt; tr.length; i++) {
+                    var td = tr[i].getElementsByTagName("td")[1];
+                    if (td) {
+                        var txt = td.textContent || td.innerText;
+                        tr[i].style.display = txt.toUpperCase().indexOf(filter) &gt; -1 ? "" : "none";
+                    }
+                }
+            }
+            function filterPosts() {
+                var input = document.getElementById("postSearch");
+                var filter = input.value.toUpperCase();
+                var tbody = document.getElementById("postTableBody");
+                var tr = tbody.getElementsByTagName("tr");
+                for (var i = 0; i &lt; tr.length; i++) {
+                    var td = tr[i].getElementsByTagName("td")[1];
+                    if (td) {
+                        var txt = td.textContent || td.innerText;
+                        tr[i].style.display = txt.toUpperCase().indexOf(filter) &gt; -1 ? "" : "none";
+                    }
+                }
+            }
+        </script>
+    </ui:define>
+</ui:composition>

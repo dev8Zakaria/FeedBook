@@ -6,6 +6,8 @@ import com.example.feedbook.entity.PostVisibility;
 import com.example.feedbook.entity.Role;
 import com.example.feedbook.service.CommentService;
 import com.example.feedbook.service.PostService;
+import com.example.feedbook.service.ImageService;
+import jakarta.servlet.http.Part;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.faces.application.FacesMessage;
@@ -25,6 +27,9 @@ public class PostBean implements Serializable {
     private PostService postService;
 
     @Inject
+    private ImageService imageService;
+
+    @Inject
     private CommentService commentService;
 
     @Inject
@@ -37,6 +42,7 @@ public class PostBean implements Serializable {
     // New post form
     private String newContent;
     private String newVisibility = "PUBLIC";
+    private Part newImage;
 
     // View / edit
     private Long postId;
@@ -76,16 +82,27 @@ public class PostBean implements Serializable {
     // Create post
     // -------------------------------------------------------------------------
 
+    private Long groupId; // optional, for group posts
+
     public String doCreatePost() {
         try {
-            PostVisibility vis = PostVisibility.valueOf(newVisibility);
-            postService.createPost(authBean.getCurrentUser().getId(), newContent, vis);
-            return "/index.xhtml?faces-redirect=true";
+            String imageUrl = imageService != null ? imageService.saveImage(newImage) : null;
+            if (groupId != null) {
+                postService.createGroupPost(authBean.getCurrentUser().getId(), groupId, newContent, imageUrl);
+                return "/groups/view.xhtml?groupId=" + groupId + "&faces-redirect=true";
+            } else {
+                PostVisibility vis = PostVisibility.valueOf(newVisibility);
+                postService.createPost(authBean.getCurrentUser().getId(), newContent, vis, imageUrl);
+                return "/index.xhtml?faces-redirect=true";
+            }
         } catch (Exception e) {
-            addError("Could not create post: " + e.getMessage());
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Could not create post: " + e.getMessage(), null));
             return null;
         }
     }
+
+    public Long getGroupId() { return groupId; }
+    public void setGroupId(Long groupId) { this.groupId = groupId; }
 
     // -------------------------------------------------------------------------
     // View post + comments
@@ -211,6 +228,9 @@ public class PostBean implements Serializable {
 
     public String getNewVisibility() { return newVisibility; }
     public void setNewVisibility(String newVisibility) { this.newVisibility = newVisibility; }
+    
+    public Part getNewImage() { return newImage; }
+    public void setNewImage(Part newImage) { this.newImage = newImage; }
 
     public Long getPostId() { return postId; }
     public void setPostId(Long postId) { this.postId = postId; }
