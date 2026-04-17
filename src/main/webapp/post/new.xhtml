@@ -1,60 +1,58 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:f="jakarta.faces.core">
-<h:head>
-    <title>FeedBook - New Post</title>
-</h:head>
-<h:body>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                template="/WEB-INF/templates/layout.xhtml">
 
     <f:metadata>
         <f:viewParam name="groupId" value="#{postBean.groupId}" />
     </f:metadata>
 
-    <h2>New Post</h2>
-    
-    <h:panelGroup rendered="#{empty postBean.groupId}">
-        <h:link outcome="/index.xhtml" value="&lt; Back to Feed" />
-    </h:panelGroup>
-    <h:panelGroup rendered="#{not empty postBean.groupId}">
-        <h:link outcome="/groups/view.xhtml" value="&lt; Back to Group">
-            <f:param name="groupId" value="#{postBean.groupId}"/>
-        </h:link>
-    </h:panelGroup>
-    
-    <hr/>
+    <ui:define name="title">New Post — FeedBook</ui:define>
 
-    <h:messages globalOnly="true" />
-
-    <h:form id="newPostForm" enctype="multipart/form-data">
-        <!-- Pass groupId along with form if set -->
-        <h:inputHidden value="#{postBean.groupId}" rendered="#{not empty postBean.groupId}" />
-
-        <p>
-            <h:outputLabel for="content" value="Content" /><br/>
-            <h:inputTextarea id="content" value="#{postBean.newContent}"
-                             rows="6" cols="60"
-                             required="true" requiredMessage="Content is required." />
-        </p>
-
-        <p>
-            <h:outputLabel for="image" value="Attach Image (Optional)" /><br/>
-            <h:inputFile id="image" value="#{postBean.newImage}" />
-        </p>
-
+    <ui:define name="content">
         <h:panelGroup rendered="#{empty postBean.groupId}">
-            <p>
-                <h:outputLabel for="visibility" value="Visibility" /><br/>
-                <h:selectOneMenu id="visibility" value="#{postBean.newVisibility}">
-                    <f:selectItem itemValue="PUBLIC" itemLabel="Public" />
-                    <f:selectItem itemValue="PRIVATE" itemLabel="Private" />
-                </h:selectOneMenu>
-            </p>
+            <h:link outcome="/index.xhtml" value="Back to Feed" styleClass="fb-back" />
+        </h:panelGroup>
+        <h:panelGroup rendered="#{not empty postBean.groupId}">
+            <h:link outcome="/groups/view.xhtml" value="Back to Group" styleClass="fb-back">
+                <f:param name="groupId" value="#{postBean.groupId}"/>
+            </h:link>
         </h:panelGroup>
 
-        <h:commandButton value="Post" action="#{postBean.doCreatePost}" />
+        <h1 class="fb-page-title">New Post</h1>
+        <hr class="fb-divider" />
 
-    </h:form>
+        <h:messages globalOnly="true" styleClass="fb-messages" />
 
-</h:body>
-</html>
+        <div class="fb-card" style="max-width:640px;">
+            <h:form id="newPostForm" enctype="multipart/form-data">
+                <h:inputHidden value="#{postBean.groupId}" rendered="#{not empty postBean.groupId}" />
+
+                <div class="fb-form-group">
+                    <label class="fb-label" for="content">Content</label>
+                    <h:inputTextarea id="content" value="#{postBean.newContent}"
+                                     rows="6" styleClass="fb-input"
+                                     required="true" requiredMessage="Content is required." />
+                </div>
+
+                <div class="fb-form-group">
+                    <label class="fb-label" for="image">Attach Image (Optional)</label>
+                    <h:inputFile id="image" value="#{postBean.newImage}" />
+                </div>
+
+                <h:panelGroup rendered="#{empty postBean.groupId}">
+                    <div class="fb-form-group">
+                        <label class="fb-label" for="visibility">Visibility</label>
+                        <h:selectOneMenu id="visibility" value="#{postBean.newVisibility}" styleClass="fb-input">
+                            <f:selectItem itemValue="PUBLIC" itemLabel="Public" />
+                            <f:selectItem itemValue="PRIVATE" itemLabel="Private" />
+                        </h:selectOneMenu>
+                    </div>
+                </h:panelGroup>
+
+                <h:commandButton value="Publish" action="#{postBean.doCreatePost}" styleClass="fb-btn fb-btn--primary" />
+            </h:form>
+        </div>
+    </ui:define>
+</ui:composition>

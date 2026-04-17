@@ -1,47 +1,49 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:f="jakarta.faces.core"
-      xmlns:c="jakarta.tags.core">
-<h:head>
-    <title>FeedBook - Edit Post</title>
-</h:head>
-<h:body>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:c="jakarta.tags.core"
+                xmlns:ui="jakarta.faces.facelets"
+                template="/WEB-INF/templates/layout.xhtml">
 
-    <f:metadata>
-        <f:viewParam name="postId" value="#{postBean.postId}" />
-        <f:viewAction action="#{postBean.loadEditPost}" />
-    </f:metadata>
+    <ui:define name="title">Edit Post — FeedBook</ui:define>
 
-    <h:link outcome="/index.xhtml" value="&lt; Back to Feed" />
-    <hr/>
+    <ui:define name="content">
+        <f:metadata>
+            <f:viewParam name="postId" value="#{postBean.postId}" />
+            <f:viewAction action="#{postBean.loadEditPost}" />
+        </f:metadata>
 
-    <h:messages globalOnly="true" />
+        <h:link outcome="/index.xhtml" value="Back to Feed" styleClass="fb-back" />
 
-    <c:choose>
-        <c:when test="#{postBean.currentPost == null}">
-            <p>Post not found.</p>
-        </c:when>
-        <c:otherwise>
+        <h:messages globalOnly="true" styleClass="fb-messages" />
 
-            <h2>Edit Post</h2>
+        <c:choose>
+            <c:when test="#{postBean.currentPost == null}">
+                <div class="fb-empty">
+                    <p class="fb-empty__title">Post not found</p>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <h1 class="fb-page-title">Edit Post</h1>
+                <hr class="fb-divider" />
 
-            <h:form id="editPostForm">
-                <p>
-                    <h:outputLabel for="editContent" value="Content" /><br/>
-                    <h:inputTextarea id="editContent" value="#{postBean.editContent}"
-                                     rows="6" cols="60"
-                                     required="true" requiredMessage="Content is required." />
-                </p>
-                <h:commandButton value="Save" action="#{postBean.doEditPost}" />
-                &#160;
-                <h:link outcome="/post/view.xhtml" value="Cancel">
-                    <f:param name="postId" value="#{postBean.postId}"/>
-                </h:link>
-            </h:form>
-
-        </c:otherwise>
-    </c:choose>
-
-</h:body>
-</html>
+                <div class="fb-card" style="max-width:640px;">
+                    <h:form id="editPostForm">
+                        <div class="fb-form-group">
+                            <label class="fb-label" for="editContent">Content</label>
+                            <h:inputTextarea id="editContent" value="#{postBean.editContent}"
+                                             rows="6" styleClass="fb-input"
+                                             required="true" requiredMessage="Content is required." />
+                        </div>
+                        <div class="fb-flex fb-flex--gap-sm">
+                            <h:commandButton value="Save Changes" action="#{postBean.doEditPost}" styleClass="fb-btn fb-btn--primary" />
+                            <h:link outcome="/post/view.xhtml" value="Cancel" styleClass="fb-btn fb-btn--outline">
+                                <f:param name="postId" value="#{postBean.postId}"/>
+                            </h:link>
+                        </div>
+                    </h:form>
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </ui:define>
+</ui:composition>

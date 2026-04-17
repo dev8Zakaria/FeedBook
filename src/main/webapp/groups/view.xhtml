@@ -1,143 +1,177 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:f="jakarta.faces.core"
-      xmlns:ui="jakarta.faces.facelets">
-<h:head>
-    <title>Group View - FeedBook</title>
-    <style>
-        body { font-family: sans-serif; margin: 20px; }
-        .post-card { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 5px; }
-        .admin-badge { background: #333; color: white; padding: 2px 5px; font-size: 10px; border-radius: 3px; }
-        .flex-container { display: flex; gap: 40px; }
-        .main-col { flex: 3; }
-        .side-col { flex: 1; border-left: 1px solid #eee; padding-left: 20px; }
-    </style>
-</h:head>
-<h:body>
-    <f:metadata>
-        <f:viewParam name="groupId" value="#{groupBean.groupId}" />
-        <f:viewAction action="#{groupBean.loadGroup}" />
-    </f:metadata>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                template="/WEB-INF/templates/layout.xhtml">
 
-    <h:link outcome="/groups/list.xhtml" value="&lt; Back to Groups" />
-    <hr/>
-    <h:messages globalOnly="true" />
+    <ui:define name="title">Group — FeedBook</ui:define>
 
-    <div class="flex-container">
-        <!-- LEFT COLUMN: GROUP FEED -->
-        <div class="main-col">
-            <h:panelGroup rendered="#{not empty groupBean.currentGroup.imageUrl}">
-                <img src="#{request.contextPath}/resources/#{groupBean.currentGroup.imageUrl}" 
-                     style="width: 80px; height: 80px; border-radius: 8px; object-fit: cover; margin-bottom: 10px;" />
-            </h:panelGroup>
-            <h2>#{groupBean.currentGroup.name} 
-                <span style="font-size:14px; font-weight:normal;">#{groupBean.currentGroup.type}</span>
-            </h2>
-            <p>#{groupBean.currentGroup.description}</p>
-            
-            <h:form style="margin-bottom: 20px;">
-                <ui:fragment rendered="#{not groupBean.member and not groupBean.pending}">
-                    <h:commandButton value="#{groupBean.currentGroup.type eq 'PRIVATE' ? 'Request to Join' : 'Join Group'}" 
-                                     action="#{groupBean.joinGroup(groupBean.currentGroup.id)}" />
-                </ui:fragment>
-                <ui:fragment rendered="#{groupBean.pending}">
-                    <span style="display:inline-block; padding:5px 10px; background:#fff3cd; color:#856404; border:1px solid #ffeeba; border-radius:3px;">
-                        Request Pending
-                    </span>
-                </ui:fragment>
-                <ui:fragment rendered="#{groupBean.member}">
-                    <h:commandButton value="Leave Group" action="#{groupBean.leaveGroup}" onclick="return confirm('Leave this group?');" />
-                    <h:link outcome="/post/new.xhtml" value="Write a Post" style="margin-left: 10px; border: 1px solid #ccc; padding: 2px 8px; text-decoration:none; color:black; background:#eee;">
-                        <f:param name="groupId" value="#{groupBean.currentGroup.id}" />
-                    </h:link>
-                </ui:fragment>
-            </h:form>
+    <ui:define name="content">
+        <f:metadata>
+            <f:viewParam name="groupId" value="#{groupBean.groupId}" />
+            <f:viewAction action="#{groupBean.loadGroup}" />
+        </f:metadata>
 
-            <ui:fragment rendered="#{empty groupBean.groupPosts and groupBean.member}">
-                <p>No posts in this group yet.</p>
-            </ui:fragment>
-            <ui:fragment rendered="#{not groupBean.member and groupBean.currentGroup.type eq 'PRIVATE'}">
-                <p>This is a private group. Join to see posts.</p>
-            </ui:fragment>
+        <h:link outcome="/groups/list.xhtml" value="Back to Groups" styleClass="fb-back" />
 
-            <ui:repeat value="#{groupBean.groupPosts}" var="post">
-                <div class="post-card">
-                    <p>
-                        <strong>#{post.author.username}</strong> - #{post.createdAt}
-                    </p>
-                    <p>#{post.content}</p>
-                    <ui:fragment rendered="#{not empty post.imageUrl}">
-                        <img src="#{request.contextPath}/resources/#{post.imageUrl}" style="max-width: 100%; display:block; margin:10px 0;" />
-                    </ui:fragment>
-                    
-                    <h:link outcome="/post/view.xhtml" value="View/Comment">
-                        <f:param name="postId" value="#{post.id}" />
-                    </h:link>
-                </div>
-            </ui:repeat>
-        </div>
+        <h:messages globalOnly="true" styleClass="fb-messages" />
 
-        <!-- RIGHT COLUMN: MEMBERS LIST -->
-        <div class="side-col">
-            <h3>Members (#{groupBean.members.size()})</h3>
-            
-            <ui:fragment rendered="#{not groupBean.member and groupBean.currentGroup.type eq 'PRIVATE'}">
-                <p>Hidden</p>
-            </ui:fragment>
-
-            <ui:fragment rendered="#{groupBean.member or groupBean.currentGroup.type eq 'PUBLIC'}">
-                <ul style="list-style:none; padding:0;">
-                    <ui:repeat value="#{groupBean.members}" var="m">
-                        <li style="margin-bottom: 10px;">
-                            <h:link outcome="/profile/view.xhtml">
-                                <f:param name="userId" value="#{m.user.id}" />
-                                #{m.user.username}
-                            </h:link>
-                            
-                            <ui:fragment rendered="#{m.role eq 'ADMIN'}">
-                                <span class="admin-badge">ADMIN</span>
-                            </ui:fragment>
-
-                            <!-- Admin Management controls -->
-                            <h:form style="display:inline; margin-left:10px;" rendered="#{groupBean.admin and m.role ne 'ADMIN'}">
-                                <h:commandLink value="[Promote]" action="#{groupBean.promoteMember(m.user.id)}" style="font-size:12px; color:green;" />
-                                &#160;
-                                <h:commandLink value="[Kick]" action="#{groupBean.kickMember(m.user.id)}" style="font-size:12px; color:red;" onclick="return confirm('Kick this user?');"/>
-                            </h:form>
-                        </li>
-                    </ui:repeat>
-                </ul>
-            </ui:fragment>
-
-            <!-- PENDING REQUESTS -->
-            <ui:fragment rendered="#{groupBean.admin}">
-                <hr style="margin-top:20px;"/>
-                <h3 style="color:#a83232;">Pending Requests</h3>
-                <ui:fragment rendered="#{empty groupBean.pendingMembers}">
-                    <p style="font-size:12px; color:#666;">No pending requests.</p>
-                </ui:fragment>
-                <ul style="list-style:none; padding:0;">
-                    <ui:repeat value="#{groupBean.pendingMembers}" var="pm">
-                        <li style="margin-bottom: 10px; background:#fff9f9; padding:5px; border:1px solid #fcc;">
-                            <h:link outcome="/profile/view.xhtml">
-                                <f:param name="userId" value="#{pm.user.id}" />
-                                #{pm.user.username}
-                            </h:link>
-                            <div style="margin-top:5px;">
-                                <h:form style="display:inline;">
-                                    <h:commandLink value="Accept" action="#{groupBean.acceptRequest(pm.user.id)}" style="color:green; font-weight:bold; font-size:12px;" />
-                                    &#160;|&#160;
-                                    <h:commandLink value="Refuse" action="#{groupBean.refuseRequest(pm.user.id)}" style="color:red; font-size:12px;" />
-                                </h:form>
+        <div class="fb-grid-2col">
+            <!-- ═══ LEFT: GROUP FEED ═══ -->
+            <div>
+                <!-- Group Header -->
+                <div class="fb-card" style="margin-bottom:24px;">
+                    <div class="fb-flex fb-flex--gap-md fb-flex--center">
+                        <h:panelGroup rendered="#{not empty groupBean.currentGroup.imageUrl}">
+                            <h:graphicImage library="uploads" name="#{groupBean.currentGroup.imageUrl.substring(8)}"
+                                            class="fb-group-img" style="width:72px; height:72px;" />
+                        </h:panelGroup>
+                        <h:panelGroup rendered="#{empty groupBean.currentGroup.imageUrl}">
+                            <div class="fb-avatar-placeholder" style="width:72px; height:72px; border-radius:var(--radius-md); font-size:1.6rem;">
+                                #{groupBean.currentGroup.name.substring(0,1).toUpperCase()}
                             </div>
-                        </li>
-                    </ui:repeat>
-                </ul>
-            </ui:fragment>
+                        </h:panelGroup>
 
+                        <div>
+                            <div class="fb-flex fb-flex--center fb-flex--gap-sm">
+                                <h1 class="fb-page-title" style="margin-bottom:0;">#{groupBean.currentGroup.name}</h1>
+                                <span class="fb-badge #{groupBean.currentGroup.type eq 'PUBLIC' ? 'fb-badge--public' : 'fb-badge--private'}">
+                                    #{groupBean.currentGroup.type}
+                                </span>
+                            </div>
+                            <p style="color:var(--ink-secondary); font-size:0.9rem; margin-top:4px;">
+                                #{groupBean.currentGroup.description}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:16px;">
+                        <h:form style="display:inline; margin:0;">
+                            <ui:fragment rendered="#{not groupBean.member and not groupBean.pending}">
+                                <h:commandButton value="#{groupBean.currentGroup.type eq 'PRIVATE' ? 'Request to Join' : 'Join Group'}"
+                                                 action="#{groupBean.joinGroup(groupBean.currentGroup.id)}"
+                                                 styleClass="fb-btn fb-btn--primary fb-btn--sm" />
+                            </ui:fragment>
+                            <ui:fragment rendered="#{groupBean.pending}">
+                                <span class="fb-badge fb-badge--pending" style="font-size:0.8rem; padding:5px 14px;">
+                                    ⏳ Request Pending
+                                </span>
+                            </ui:fragment>
+                            <ui:fragment rendered="#{groupBean.member}">
+                                <h:commandButton value="Leave Group" action="#{groupBean.leaveGroup}"
+                                                 onclick="return confirm('Leave this group?');"
+                                                 styleClass="fb-btn fb-btn--outline fb-btn--sm" />
+                                <h:link outcome="/post/new.xhtml" value="Write a Post" styleClass="fb-btn fb-btn--primary fb-btn--sm" style="margin-left:6px;">
+                                    <f:param name="groupId" value="#{groupBean.currentGroup.id}" />
+                                </h:link>
+                            </ui:fragment>
+                        </h:form>
+                    </div>
+                </div>
+
+                <!-- Posts -->
+                <ui:fragment rendered="#{empty groupBean.groupPosts and groupBean.member}">
+                    <div class="fb-empty">
+                        <p class="fb-empty__text">No posts in this group yet.</p>
+                    </div>
+                </ui:fragment>
+                <ui:fragment rendered="#{not groupBean.member and groupBean.currentGroup.type eq 'PRIVATE'}">
+                    <div class="fb-empty">
+                        <p class="fb-empty__text">This is a private group. Join to see posts.</p>
+                    </div>
+                </ui:fragment>
+
+                <ui:repeat value="#{groupBean.groupPosts}" var="post">
+                    <div class="fb-post">
+                        <div class="fb-post__meta">
+                            <h:link outcome="/profile/view.xhtml" styleClass="fb-post__author">
+                                <f:param name="userId" value="#{post.author.id}" />
+                                #{post.author.username}
+                            </h:link>
+                            <span class="fb-post__separator">·</span>
+                            <span class="fb-post__time">#{post.createdAt}</span>
+                        </div>
+                        <p class="fb-post__body">#{post.content}</p>
+                        <ui:fragment rendered="#{not empty post.imageUrl}">
+                            <h:graphicImage library="uploads" name="#{post.imageUrl.substring(8)}" class="fb-post__image" />
+                        </ui:fragment>
+                        <div class="fb-post__actions">
+                            <h:link outcome="/post/view.xhtml" value="View / Comment">
+                                <f:param name="postId" value="#{post.id}" />
+                            </h:link>
+                        </div>
+                    </div>
+                </ui:repeat>
+            </div>
+
+            <!-- ═══ RIGHT: SIDEBAR ═══ -->
+            <div>
+                <div class="fb-card fb-card--flat">
+                    <h3 style="font-family:var(--font-display); font-size:1rem; margin-bottom:12px;">
+                        Members (#{groupBean.members.size()})
+                    </h3>
+
+                    <ui:fragment rendered="#{not groupBean.member and groupBean.currentGroup.type eq 'PRIVATE'}">
+                        <p style="color:var(--ink-muted); font-size:0.85rem;">Hidden</p>
+                    </ui:fragment>
+
+                    <ui:fragment rendered="#{groupBean.member or groupBean.currentGroup.type eq 'PUBLIC'}">
+                        <ul style="list-style:none; padding:0;">
+                            <ui:repeat value="#{groupBean.members}" var="m">
+                                <li style="padding:8px 0; border-bottom:1px solid var(--bg-inset);">
+                                    <div class="fb-flex fb-flex--center fb-flex--gap-sm">
+                                        <h:link outcome="/profile/view.xhtml" style="font-weight:500; font-size:0.9rem;">
+                                            <f:param name="userId" value="#{m.user.id}" />
+                                            #{m.user.username}
+                                        </h:link>
+                                        <ui:fragment rendered="#{m.role eq 'ADMIN'}">
+                                            <span class="fb-badge fb-badge--admin">Admin</span>
+                                        </ui:fragment>
+                                    </div>
+                                    <h:form style="display:inline;" rendered="#{groupBean.admin and m.role ne 'ADMIN'}">
+                                        <h:commandLink value="Promote" action="#{groupBean.promoteMember(m.user.id)}"
+                                                       style="font-size:0.75rem; color:var(--success); margin-right:8px;" />
+                                        <h:commandLink value="Kick" action="#{groupBean.kickMember(m.user.id)}"
+                                                       style="font-size:0.75rem; color:var(--danger);"
+                                                       onclick="return confirm('Kick this user?');" />
+                                    </h:form>
+                                </li>
+                            </ui:repeat>
+                        </ul>
+                    </ui:fragment>
+                </div>
+
+                <!-- PENDING REQUESTS -->
+                <ui:fragment rendered="#{groupBean.admin}">
+                    <div class="fb-card fb-card--flat" style="margin-top:16px;">
+                        <h3 style="font-family:var(--font-display); font-size:1rem; margin-bottom:12px; color:var(--danger);">
+                            Pending Requests
+                        </h3>
+                        <ui:fragment rendered="#{empty groupBean.pendingMembers}">
+                            <p style="font-size:0.82rem; color:var(--ink-muted);">No pending requests.</p>
+                        </ui:fragment>
+                        <ul style="list-style:none; padding:0;">
+                            <ui:repeat value="#{groupBean.pendingMembers}" var="pm">
+                                <li style="padding:8px; background:var(--warning-soft); border-radius:var(--radius-sm); margin-bottom:8px;">
+                                    <h:link outcome="/profile/view.xhtml" style="font-weight:500; font-size:0.9rem;">
+                                        <f:param name="userId" value="#{pm.user.id}" />
+                                        #{pm.user.username}
+                                    </h:link>
+                                    <div style="margin-top:5px;">
+                                        <h:form style="display:inline;">
+                                            <h:commandLink value="Accept" action="#{groupBean.acceptRequest(pm.user.id)}"
+                                                           style="color:var(--success); font-weight:600; font-size:0.8rem;" />
+                                            &#160;|&#160;
+                                            <h:commandLink value="Refuse" action="#{groupBean.refuseRequest(pm.user.id)}"
+                                                           style="color:var(--danger); font-size:0.8rem;" />
+                                        </h:form>
+                                    </div>
+                                </li>
+                            </ui:repeat>
+                        </ul>
+                    </div>
+                </ui:fragment>
+            </div>
         </div>
-    </div>
-
-</h:body>
-</html>
+    </ui:define>
+</ui:composition>

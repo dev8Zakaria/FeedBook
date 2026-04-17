@@ -1,71 +1,66 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:f="jakarta.faces.core">
-<h:head>
-    <title>Edit Profile - FeedBook</title>
-    <style>
-        body { font-family: sans-serif; margin: 20px; }
-        .card { border: 1px solid #ccc; padding: 15px; max-width: 400px; border-radius: 5px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="password"], textarea { width: 100%; padding: 8px; box-sizing: border-box; }
-        .error { color: red; }
-        .pfp-preview { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; border: 1px solid #ddd; }
-    </style>
-</h:head>
-<h:body>
-    <f:metadata>
-        <f:viewAction action="#{profileBean.loadProfile}"/>
-    </f:metadata>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:ui="jakarta.faces.facelets"
+                template="/WEB-INF/templates/layout.xhtml">
 
-    <h:link outcome="/profile/view.xhtml" value="Cancel &amp; Go Back">
-        <f:param name="userId" value="#{authBean.currentUser.id}" />
-    </h:link>
-    
-    <div class="card" style="margin-top: 15px;">
-        <h2>Edit Profile</h2>
-        <h:messages globalOnly="true" styleClass="error" />
+    <ui:define name="title">Edit Profile — FeedBook</ui:define>
 
-        <h:form enctype="multipart/form-data">
-            
-            <div class="form-group text-center">
-                <label>Current Picture:</label>
-                <h:graphicImage value="/resources/#{authBean.currentUser.profilePictureUrl}" 
-                                rendered="#{not empty authBean.currentUser.profilePictureUrl}" 
-                                styleClass="pfp-preview" />
-                <h:panelGroup rendered="#{empty authBean.currentUser.profilePictureUrl}">
-                    <div style="background:#eee; width:60px; height:60px; border-radius:50%; display:inline-block; line-height:60px; color:#999; font-size:10px;">No Image</div>
-                </h:panelGroup>
-                <br/>
-                <h:outputLabel value="Change Picture:" for="pfp" />
-                <h:inputFile id="pfp" value="#{profileBean.newProfileImage}" />
-            </div>
+    <ui:define name="content">
+        <f:metadata>
+            <f:viewAction action="#{profileBean.loadProfile}"/>
+        </f:metadata>
 
-            <div class="form-group">
-                <h:outputLabel value="First Name:" for="firstName" />
-                <h:inputText id="firstName" value="#{profileBean.firstName}" required="true" />
-            </div>
+        <h:link outcome="/profile/view.xhtml" value="Cancel &amp; Go Back" styleClass="fb-back">
+            <f:param name="userId" value="#{authBean.currentUser.id}" />
+        </h:link>
 
-            <div class="form-group">
-                <h:outputLabel value="Last Name:" for="lastName" />
-                <h:inputText id="lastName" value="#{profileBean.lastName}" required="true" />
-            </div>
+        <h1 class="fb-page-title">Edit Profile</h1>
+        <hr class="fb-divider" />
 
-            <div class="form-group">
-                <h:outputLabel value="Bio:" for="bio" />
-                <h:inputTextarea id="bio" value="#{profileBean.bio}" rows="4" />
-            </div>
+        <h:messages globalOnly="true" styleClass="fb-messages" />
 
-            <div class="form-group" style="border-top: 1px solid #eee; padding-top: 10px;">
-                <h:outputLabel value="New Password (Optional):" for="pwd" />
-                <h:inputSecret id="pwd" value="#{profileBean.newPassword}" />
-                <small style="color: #666;">Leave blank to stay as is.</small>
-            </div>
+        <div class="fb-card" style="max-width:500px;">
+            <h:form enctype="multipart/form-data">
+                <div class="fb-form-group" style="text-align:center;">
+                    <label class="fb-label">Current Picture</label>
+                    <div style="margin-bottom:12px;">
+                        <h:graphicImage value="/resources/#{authBean.currentUser.profilePictureUrl}"
+                                        rendered="#{not empty authBean.currentUser.profilePictureUrl}"
+                                        styleClass="fb-avatar fb-avatar--lg" />
+                        <h:panelGroup rendered="#{empty authBean.currentUser.profilePictureUrl}">
+                            <div class="fb-avatar-placeholder" style="width:110px; height:110px; font-size:2.4rem; margin:0 auto;">
+                                #{authBean.currentUser.username.substring(0,1).toUpperCase()}
+                            </div>
+                        </h:panelGroup>
+                    </div>
+                    <label class="fb-label" for="pfp">Change Picture</label>
+                    <h:inputFile id="pfp" value="#{profileBean.newProfileImage}" />
+                </div>
 
-            <h:commandButton value="Save Changes" action="#{profileBean.saveProfile}" />
-        </h:form>
-    </div>
+                <div class="fb-form-group">
+                    <label class="fb-label" for="firstName">First Name</label>
+                    <h:inputText id="firstName" value="#{profileBean.firstName}" required="true" styleClass="fb-input" />
+                </div>
 
-</h:body>
-</html>
+                <div class="fb-form-group">
+                    <label class="fb-label" for="lastName">Last Name</label>
+                    <h:inputText id="lastName" value="#{profileBean.lastName}" required="true" styleClass="fb-input" />
+                </div>
+
+                <div class="fb-form-group">
+                    <label class="fb-label" for="bio">Bio</label>
+                    <h:inputTextarea id="bio" value="#{profileBean.bio}" rows="4" styleClass="fb-input" />
+                </div>
+
+                <div class="fb-form-group" style="border-top:1px solid var(--ink-ghost); padding-top:16px;">
+                    <label class="fb-label" for="pwd">New Password (Optional)</label>
+                    <h:inputSecret id="pwd" value="#{profileBean.newPassword}" styleClass="fb-input" />
+                    <small style="color:var(--ink-muted); font-size:0.78rem;">Leave blank to keep current password.</small>
+                </div>
+
+                <h:commandButton value="Save Changes" action="#{profileBean.saveProfile}" styleClass="fb-btn fb-btn--primary" />
+            </h:form>
+        </div>
+    </ui:define>
+</ui:composition>

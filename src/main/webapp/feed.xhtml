@@ -1,57 +1,89 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:ui="jakarta.faces.facelets"
-      xmlns:f="jakarta.faces.core">
-<h:head>
-    <title>My Feed - FeedBook</title>
-    <style>
-        body { font-family: sans-serif; margin: 20px; }
-        .post-card { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
-        .author-link { font-weight: bold; text-decoration: none; color: black; }
-        .author-link:hover { text-decoration: underline; }
-    </style>
-</h:head>
-<h:body>
-    <div class="container">
-        
-        <div class="header">
-            <h1 class="feed-title">My Feed</h1>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:c="jakarta.tags.core"
+                xmlns:ui="jakarta.faces.facelets"
+                template="/WEB-INF/templates/layout.xhtml">
+
+    <ui:define name="title">My Feed — FeedBook</ui:define>
+
+    <ui:define name="content">
+        <div class="fb-grid-2col">
+            <!-- ═══ LEFT: PERSONAL FEED ═══ -->
             <div>
-                <h:link outcome="index.xhtml" value="View Global Feed" style="margin-right:10px;"/>
-                <h:link outcome="/post/new.xhtml" value="Create Post"/>
+                <h1 class="fb-page-title">My Feed</h1>
+                <p class="fb-page-subtitle">Posts from people you follow.</p>
+
+                <ui:fragment rendered="#{empty postBean.followedFeed}">
+                    <div class="fb-empty">
+                        <p class="fb-empty__title">Nothing here yet</p>
+                        <p class="fb-empty__text">Follow some users to see their posts appear in your personalized feed.</p>
+                    </div>
+                </ui:fragment>
+
+                <ui:repeat value="#{postBean.followedFeed}" var="post">
+                    <div class="fb-post">
+                        <div class="fb-post__meta">
+                            <h:link outcome="/profile/view.xhtml" styleClass="fb-post__author">
+                                <f:param name="userId" value="#{post.author.id}" />
+                                #{post.author.username}
+                            </h:link>
+
+                            <h:panelGroup rendered="#{not empty post.group}">
+                                <span class="fb-post__separator">▸</span>
+                                <h:link outcome="/groups/view.xhtml" styleClass="fb-post__group">
+                                    <f:param name="groupId" value="#{post.group.id}" />
+                                    #{post.group.name}
+                                </h:link>
+                            </h:panelGroup>
+
+                            <span class="fb-post__separator">·</span>
+                            <span class="fb-post__time">#{post.createdAt}</span>
+                        </div>
+
+                        <p class="fb-post__body">#{post.content}</p>
+
+                        <ui:fragment rendered="#{not empty post.imageUrl}">
+                            <h:graphicImage library="uploads" name="#{post.imageUrl.substring(8)}" class="fb-post__image" />
+                        </ui:fragment>
+
+                        <div class="fb-post__actions">
+                            <h:link outcome="/post/view.xhtml" value="View / Comment">
+                                <f:param name="postId" value="#{post.id}" />
+                            </h:link>
+                        </div>
+                    </div>
+                </ui:repeat>
             </div>
+
+            <!-- ═══ RIGHT: SIDEBAR ═══ -->
+            <aside>
+                <div class="fb-card fb-card--flat">
+                    <h3 style="font-family:var(--font-display); font-size:0.95rem; margin-bottom:12px;">Suggested for you</h3>
+                    <p style="font-size:0.82rem; color:var(--ink-muted); margin-bottom:16px;">
+                        Keep track of your community.
+                    </p>
+                    <div class="fb-flex fb-flex--between fb-flex--gap-sm" style="font-size:0.85rem; margin-bottom:8px;">
+                        <span>New Posts Today</span>
+                        <strong style="color:var(--accent);">#{postBean.globalFeed.size()}</strong>
+                    </div>
+                    <div class="fb-flex fb-flex--between fb-flex--gap-sm" style="font-size:0.85rem;">
+                        <span>Your Groups</span>
+                        <strong style="color:var(--accent);">#{groupBean.myGroups.size()}</strong>
+                    </div>
+                </div>
+
+                <div class="fb-card fb-card--flat" style="margin-top:20px;">
+                    <h3 style="font-family:var(--font-display); font-size:0.95rem; margin-bottom:12px;">Quick Links</h3>
+                    <nav class="fb-flex fb-flex--column fb-flex--gap-sm" style="font-size:0.88rem;">
+                        <h:link outcome="/post/new.xhtml" value="Create Post" style="color:var(--ink-primary);"/>
+                        <h:link outcome="/groups/list.xhtml" value="Explore Groups" style="color:var(--ink-primary);"/>
+                        <h:link outcome="/profile/view.xhtml" value="View Profile" style="color:var(--ink-primary);">
+                             <f:param name="userId" value="#{authBean.currentUser.id}" />
+                        </h:link>
+                    </nav>
+                </div>
+            </aside>
         </div>
-
-        <ui:fragment rendered="#{empty postBean.followedFeed}">
-            <div class="empty-feed">
-                <h2>Nothing to see here yet!</h2>
-                <p>Follow some users to see their posts appear in your personalized feed.</p>
-            </div>
-        </ui:fragment>
-
-        <ui:repeat value="#{postBean.followedFeed}" var="post">
-            <div class="post-card">
-                 <h:link outcome="/profile/view.xhtml" styleClass="author-link">
-                        <f:param name="userId" value="#{post.author.id}" />
-                        #{post.author.username}
-                 </h:link>
-                 <h:panelGroup rendered="#{not empty post.group}">
-                    &#160;&gt;&#160;
-                    <h:link outcome="/groups/view.xhtml" styleClass="author-link">
-                        <f:param name="groupId" value="#{post.group.id}" />
-                        #{post.group.name}
-                    </h:link>
-                 </h:panelGroup>
-                 <br/>
-                 <small>#{post.createdAt}</small>
-                 <p>#{post.content}</p>
-                 <ui:fragment rendered="#{not empty post.imageUrl}">
-                    <img src="#{request.contextPath}/resources/#{post.imageUrl}" style="max-width: 300px; display:block; margin-top:10px;" />
-                 </ui:fragment>
-            </div>
-        </ui:repeat>
-
-    </div>
-</h:body>
-</html>
+    </ui:define>
+</ui:composition>

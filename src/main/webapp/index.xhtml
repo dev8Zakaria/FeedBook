@@ -1,83 +1,118 @@
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="jakarta.faces.html"
-      xmlns:f="jakarta.faces.core"
-      xmlns:c="jakarta.tags.core">
-<h:head>
-    <title>FeedBook - Home</title>
-</h:head>
-<h:body>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="jakarta.faces.html"
+                xmlns:f="jakarta.faces.core"
+                xmlns:c="jakarta.tags.core"
+                xmlns:ui="jakarta.faces.facelets"
+                template="/WEB-INF/templates/layout.xhtml">
 
-    <h2>FeedBook</h2>
-    <p>Logged in as: <strong>#{authBean.currentUser.username}</strong></p>
+    <ui:define name="title">FeedBook — Home</ui:define>
 
-    <h:link outcome="/post/new.xhtml" value="+ New Post" /> |
-    <h:link outcome="/feed.xhtml" value="My Feed" /> |
-    <h:link outcome="/groups/list.xhtml" value="Groups" /> |
-    <h:form style="display:inline">
-        <h:commandLink value="Logout" action="#{authBean.logout}" />
-    </h:form>
-    <c:if test="#{authBean.currentUser.role eq 'ADMIN'}">
-        &#160;|&#160;
-        <h:link outcome="/admin/dashboard.xhtml" value="⚙ Admin Dashboard" />
-    </c:if>
+    <ui:define name="content">
+        <h:messages globalOnly="true" styleClass="fb-messages" />
 
-    <hr/>
+        <div class="fb-grid-2col">
+            <!-- ═══ LEFT: GLOBAL FEED ═══ -->
+            <div>
+                <h1 class="fb-page-title">Global Feed</h1>
+                <p class="fb-page-subtitle">See what everyone is sharing across FeedBook.</p>
 
-    <h:messages globalOnly="true" />
+                <c:choose>
+                    <c:when test="#{empty postBean.globalFeed}">
+                        <div class="fb-empty">
+                            <p class="fb-empty__title">No posts yet</p>
+                            <p class="fb-empty__text">Be the first to share something with the world.</p>
+                        </div>
+                    </c:when>
+                    <c:otherwise>
+                        <c:forEach items="#{postBean.globalFeed}" var="post">
+                            <div class="fb-post">
+                                <div class="fb-post__meta">
+                                    <h:link outcome="/profile/view.xhtml" styleClass="fb-post__author">
+                                        <f:param name="userId" value="#{post.author.id}"/>
+                                        #{post.author.username}
+                                    </h:link>
 
-    <h2>Global Feed</h2>
+                                    <h:panelGroup rendered="#{not empty post.group}">
+                                        <span class="fb-post__separator">▸</span>
+                                        <h:link outcome="/groups/view.xhtml" styleClass="fb-post__group">
+                                            <f:param name="groupId" value="#{post.group.id}"/>
+                                            #{post.group.name}
+                                        </h:link>
+                                    </h:panelGroup>
 
-    <c:choose>
-        <c:when test="#{empty postBean.globalFeed}">
-            <p>No posts yet.</p>
-        </c:when>
-            <c:otherwise>
-            <c:forEach items="#{postBean.globalFeed}" var="post">
-                <div style="border:1px solid #ccc; margin-bottom:16px; padding:12px;">
-                <p>
-                        <h:link outcome="/profile/view.xhtml">
-                            <f:param name="userId" value="#{post.author.id}"/>
-                            <strong>#{post.author.username}</strong>
-                        </h:link>
-                        <h:panelGroup rendered="#{not empty post.group}">
-                            &#160;&gt;&#160;
-                            <h:link outcome="/groups/view.xhtml">
-                                <f:param name="groupId" value="#{post.group.id}"/>
-                                <strong>#{post.group.name}</strong>
+                                    <span class="fb-post__separator">·</span>
+                                    <span class="fb-post__time">
+                                        <h:outputText value="#{post.createdAt}">
+                                            <f:convertDateTime pattern="dd MMM yyyy HH:mm" type="localDateTime"/>
+                                        </h:outputText>
+                                    </span>
+                                </div>
+
+                                <p class="fb-post__body">#{post.content}</p>
+
+                                <ui:fragment rendered="#{not empty post.imageUrl}">
+                                    <h:graphicImage library="uploads" name="#{post.imageUrl.substring(8)}" class="fb-post__image" />
+                                </ui:fragment>
+
+                                <div class="fb-post__actions">
+                                    <h:link outcome="/post/view.xhtml" value="View / Comment">
+                                        <f:param name="postId" value="#{post.id}"/>
+                                    </h:link>
+                                    <c:if test="#{postBean.canDelete(post)}">
+                                        <h:form style="display:inline; margin:0;">
+                                            <h:commandLink value="Delete"
+                                                           action="#{postBean.doDeletePost(post.id)}"
+                                                           onclick="return confirm('Delete this post?')"
+                                                           style="color:var(--danger);"/>
+                                        </h:form>
+                                    </c:if>
+                                </div>
+                            </div>
+                        </c:forEach>
+                    </c:otherwise>
+                </c:choose>
+            </div>
+
+            <!-- ═══ RIGHT: SIDEBAR ═══ -->
+            <aside>
+                <!-- Quick Profile -->
+                <div class="fb-card fb-card--flat" style="margin-bottom:20px;">
+                    <div class="fb-flex fb-flex--center fb-flex--gap-md">
+                        <h:graphicImage library="uploads" name="#{authBean.currentUser.profilePictureUrl.substring(8)}"
+                                        rendered="#{not empty authBean.currentUser.profilePictureUrl}"
+                                        styleClass="fb-avatar fb-avatar--sm" />
+                        <ui:fragment rendered="#{empty authBean.currentUser.profilePictureUrl}">
+                            <div class="fb-avatar-placeholder" style="width:40px; height:40px; font-size:1rem;">
+                                #{authBean.currentUser.username.substring(0,1).toUpperCase()}
+                            </div>
+                        </ui:fragment>
+                        <div>
+                            <h4 style="margin:0; font-family:var(--font-display);">#{authBean.currentUser.username}</h4>
+                            <h:link outcome="/profile/view.xhtml" value="View Profile" style="font-size:0.75rem; color:var(--accent);">
+                                <f:param name="userId" value="#{authBean.currentUser.id}" />
                             </h:link>
-                        </h:panelGroup>
-                        &#160;·&#160;
-                        <h:outputText value="#{post.createdAt}">
-                            <f:convertDateTime pattern="dd MMM yyyy HH:mm" type="localDateTime"/>
-                        </h:outputText>
-                    </p>
-                    <p>#{post.content}</p>
-                    <p>
-                        <h:link outcome="/post/view.xhtml" value="View / Comment">
-                            <f:param name="postId" value="#{post.id}"/>
-                        </h:link>
-
-                        <c:if test="#{postBean.canEdit(post)}">
-                            &#160;|&#160;
-                            <h:link outcome="/post/edit.xhtml" value="Edit">
-                                <f:param name="postId" value="#{post.id}"/>
-                            </h:link>
-                        </c:if>
-
-                        <c:if test="#{postBean.canDelete(post)}">
-                            &#160;|&#160;
-                            <h:form style="display:inline">
-                                <h:commandLink value="Delete"
-                                               action="#{postBean.doDeletePost(post.id)}"
-                                               onclick="return confirm('Delete this post?')"/>
-                            </h:form>
-                        </c:if>
-                    </p>
+                        </div>
+                    </div>
                 </div>
-            </c:forEach>
-        </c:otherwise>
-    </c:choose>
 
-</h:body>
-</html>
+                <!-- Explore Groups -->
+                <div class="fb-card fb-card--flat">
+                    <h3 style="font-family:var(--font-display); font-size:0.95rem; margin-bottom:12px;">Recommended Groups</h3>
+                    <f:metadata>
+                        <f:viewAction action="#{groupBean.loadGroups}" />
+                    </f:metadata>
+                    <c:forEach items="#{groupBean.allGroups.stream().limit(3).toList()}" var="g">
+                        <div style="margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--bg-inset);">
+                            <h:link outcome="/groups/view.xhtml" style="font-weight:600; font-size:0.88rem; display:block;">
+                                <f:param name="groupId" value="#{g.id}" />
+                                #{g.name}
+                            </h:link>
+                            <span style="font-size:0.75rem; color:var(--ink-muted);">#{g.type} Group</span>
+                        </div>
+                    </c:forEach>
+                    <h:link outcome="/groups/list.xhtml" value="View All Groups" style="font-size:0.8rem; font-weight:600; color:var(--accent);" />
+                </div>
+            </aside>
+        </div>
+    </ui:define>
+</ui:composition>

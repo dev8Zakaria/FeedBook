@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="jakarta.faces.html"
+      xmlns:f="jakarta.faces.core"
+      xmlns:ui="jakarta.faces.facelets"
+      xmlns:c="jakarta.tags.core">
+<h:head>
+    <title><ui:insert name="title">FeedBook</ui:insert></title>
+    <h:outputStylesheet name="css/feedbook.css" />
+    <ui:insert name="head" />
+</h:head>
+<h:body>
+
+    <!-- ══════ HEADER ══════ -->
+    <header class="fb-header">
+        <h:link outcome="/index.xhtml" styleClass="fb-header__brand" value="">
+            Feed<span>Book</span>
+        </h:link>
+
+        <nav class="fb-nav">
+            <h:link outcome="/index.xhtml" value="Global Feed" styleClass="fb-nav__link" />
+            <h:link outcome="/feed.xhtml" value="My Feed" styleClass="fb-nav__link" />
+            <h:link outcome="/groups/list.xhtml" value="Groups" styleClass="fb-nav__link" />
+            <h:link outcome="/post/new.xhtml" value="+ New Post" styleClass="fb-nav__link" />
+
+            <c:if test="${authBean.currentUser.role eq 'ADMIN'}">
+                <h:link outcome="/admin/dashboard.xhtml" value="⚙ Admin" styleClass="fb-nav__link" />
+            </c:if>
+
+            <div class="fb-nav__spacer"></div>
+
+            <span class="fb-nav__user">
+                <h:link outcome="/profile/view.xhtml" style="color: inherit; text-decoration: none;">
+                    <f:param name="userId" value="#{authBean.currentUser.id}" />
+                    <strong>#{authBean.currentUser.username}</strong>
+                </h:link>
+            </span>
+
+            <h:form style="display:inline; margin:0;">
+                <h:commandLink value="Log out" action="#{authBean.logout}" styleClass="fb-nav__logout" />
+            </h:form>
+        </nav>
+    </header>
+
+    <!-- ══════ MAIN ══════ -->
+    <main class="fb-main">
+        <ui:insert name="content">
+            <p>No content defined.</p>
+        </ui:insert>
+    </main>
+
+</h:body>
+</html>
